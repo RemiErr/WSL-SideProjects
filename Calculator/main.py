@@ -1,24 +1,24 @@
-import random as rand
 from res import lib
 from tkinter import *
+import random as rand
 
 m = lib.Test()
 win = Tk()
 win.title("My Functions")
-win.tk.call('wm', 'iconphoto', win, PhotoImage(file='calculator.png'))
-# win.iconbitmap('./res/img/calculator.png')
 
-width, height = 600, 100
+icon = PhotoImage(file='SideProjects/Calculator/res/img/calculator.gif')
+win.call('wm', 'iconphoto', win._w, icon)
+
+width, height = 650, 120
 src_width = win.winfo_screenwidth()
 src_height = win.winfo_screenheight()
 win_x = (src_width - width) // 2
 win_y = (src_height - height) // 2
 
 win.resizable(1,0)
-
 win.geometry(f'{width}x{height}+{win_x}+{win_y}')
-
 txt_1, txt_2 = StringVar(), StringVar()
+
 
 def chack(N1, N2):
     win.geometry(f'{width}x{height}')
@@ -49,10 +49,10 @@ def chack(N1, N2):
 
 def btn1_event():
     tmp,st1,st2 = '0123456789.', '', ''
-    n = rand.randint(5, 10)
+    n = rand.randint(3, 5)
     while n:
-        st1 += tmp[rand.randint(0,len(tmp))-1]
-        st2 += tmp[rand.randint(0,len(tmp))-1]
+        st1 += tmp[rand.randint(0,len(tmp)-1)]
+        st2 += tmp[rand.randint(0,len(tmp)-1)]
         if st1[-1] == '.' or st2[-1] == '.': tmp = '0123456789'
         n-=1
     txt_1.set(f'{st1}')
@@ -64,8 +64,8 @@ def btn2_event():
     tmp,st1,st2 = '0123456789.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,~!@#$%^&*()_-+=/<>?', '',''
     n = rand.randint(5, 10)
     while n:
-        st1 += tmp[rand.randint(0,len(tmp))-1]
-        st2 += tmp[rand.randint(0,len(tmp))-1]
+        st1 += tmp[rand.randint(0,len(tmp)-1)]
+        st2 += tmp[rand.randint(0,len(tmp)-1)]
         n-=1
     txt_1.set(f'{st1}')
     txt_2.set(f'{st2}')
@@ -76,14 +76,20 @@ def btn3_event():
     x, y = chack(ent_1.get(), ent_2.get())
     ans = m.pySum(x, y)
     anstp = str(type(ans))
-    lab.configure(text=f'Ans: {ans}\nType: {anstp[8 : -2]}')
+    lab.configure(text=f'Type:  {anstp[8 : -2]}\nAns:  {ans}')
 
 def btn4_event():
     x, y = chack(ent_1.get(), ent_2.get())
     ans = m.pySub(x, y)
     anstp = str(type(ans))
-    lab.configure(text=f'Ans: {ans}\nType: {anstp[8 : -2]}')
+    lab.configure(text=f'Type:  {anstp[8 : -2]}\nAns:  {ans}')
 
+def change():
+    x, y = ent_1.get(), ent_2.get()
+    txt_1.set(f'{y}')
+    txt_2.set(f'{x}')
+    ent_1.configure(textvariable=txt_1)
+    ent_2.configure(textvariable=txt_2)
 
 # GUI
 frame_1 = Frame(win)
@@ -92,9 +98,16 @@ frame_2 = Frame(frame_1)
 frame_2.grid(column=0, row=1)
 
 ent_1 = Entry(frame_1)
-ent_1.grid(column=0, row=0,ipadx=65, ipady=6)
+ent_1.grid(column=0, row=0, ipadx=60, ipady=8)
+
+chg = Button(frame_1, text="<->", command=change)
+chg.grid(column=1, row=0, ipadx=5)
+
+chg = Button(frame_1, text="Exit", command=quit)
+chg.grid(column=1, row=1, ipadx=5)
+
 ent_2 = Entry(frame_1)
-ent_2.grid(column=1, row=0,ipadx=65, ipady=6, sticky=W)
+ent_2.grid(column=2, row=0, ipadx=60, ipady=8)
 
 btn_1 = Button(frame_2, text="Random Number", width=15, command=btn1_event)
 btn_1.grid(column=0, row=0)
@@ -109,6 +122,6 @@ btn_3 = Button(frame_2, text="- SUB -", width=15, command=btn4_event)
 btn_3.grid(column=1, row=1)
 
 lab = Label(frame_1, text='')
-lab.grid(column=1, row=1)
+lab.grid(column=2, row=1)
 
 win.mainloop()
