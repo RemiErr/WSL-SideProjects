@@ -21,7 +21,10 @@ public:
         Price = price;
     }
     ~Armor(){}
-    
+
+    string getName() { return Name; }
+    int getDEF() { return DEF; }
+    int getPrice() { return Price; }
 };
 
 // 各職業防具

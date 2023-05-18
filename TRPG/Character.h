@@ -4,6 +4,7 @@
 #include "Weapon.h"
 #include "Armor.h"
 #include <string>
+#include <vector>
 using namespace std;
 
 // 基礎角色資料
@@ -31,6 +32,35 @@ public:
         armor = new Armor();
     }
     ~Character(){}
+
+    void setName(string name);
+    void setState(int health, int atk, int def);
+    void setMoney();
+    void setWeapon(Weapon *wep)
+    {
+        Money -= wep->getPrice();
+        ATK += wep->getATK();
+        weapon = wep;
+    }
+    void setArmor(Armor *arm)
+    {
+        Money -= arm->getPrice();
+        DEF += arm->getDEF();
+        armor = arm;
+    }
+
+    void onHit(double dmg)
+    {
+        dmg = DEF / (dmg + DEF);
+        Health -= dmg;
+    }
+
+    string getName() { return Name; }
+    vector<int> getState() { return { Health, ATK, DEF }; }    
+    int getMoney() { return Money; }
+    Weapon *getWeapon() { return weapon; }
+    Armor *getArmor() { return armor; }
+
 };
 
 
