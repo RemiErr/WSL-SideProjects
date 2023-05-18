@@ -10,25 +10,29 @@ class Armor
 {
 protected:
     string Name;
+    int Health;
     int DEF;
     int Price;
 
 public:
-    Armor(string name = "", int def = 0, int price = 0)
+    Armor(string name = "", int def = 0, int health, int price = 0)
     {
         Name = name;
+        Health = health;
         DEF = def;
         Price = price;
     }
     ~Armor(){}
 
     string getName() { return Name; }
+    int getHealth() { return Health; }
     int getDEF() { return DEF; }
     int getPrice() { return Price; }
 };
 
 // 各職業防具
-class BerserkerArmor
+class BerserkerArmor:
+    public Armor
 {
 public:
     BerserkerArmor(string name, int def, int price)
@@ -36,6 +40,7 @@ public:
 
     ~BerserkerArmor(){}
 };
+
 class TankArmor:
     public Armor
 {
@@ -63,7 +68,10 @@ public:
     ArmorShop(){}
     ~ArmorShop(){}
 
-    Armor *makeArmor(int choose);
-    Armor *makeArmor(int mob, int choose);
+    Armor *makeArmor(int option)
+    {
+        return new TankArmor("星芒戰鎧", 80, 180);
+    }
+    Armor *makeArmor(int mob, int option);
 };
 #endif

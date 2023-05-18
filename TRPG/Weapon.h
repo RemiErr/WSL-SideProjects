@@ -64,7 +64,7 @@ public:
     WeaponShop(){}
     ~WeaponShop(){}
 
-    Weapon *makeWeapon(int choose);
-    Weapon *makeWeapon(int mob, int choose);
+    Weapon *makeWeapon(int option);
+    Weapon *makeWeapon(int mob, int option);
 };
 #endif
