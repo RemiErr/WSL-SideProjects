@@ -1,5 +1,9 @@
 #ifndef WEAPON_H
 #define WEAPON_H
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <map>
 #include <string>
 using namespace std;
 
@@ -31,8 +35,13 @@ class BerserkerWeapon:
     public Weapon
 {
 public:
-    BerserkerWeapon(string name, int atk, int price)
-    { Weapon(name, atk, price); }
+    BerserkerWeapon(map<string, vector<int>> &arm, string name)
+    { 
+        if (!arm[name].empty())
+            Weapon(name, arm[name][0], arm[name][1]);
+        else
+            cout<<"Error: 未建立物件 - TankWeapon\n";
+    }
 
     ~BerserkerWeapon(){}
 };
@@ -41,8 +50,13 @@ class TankWeapon:
     public Weapon
 {
 public:
-    TankWeapon(string name, int atk, int price)
-    { Weapon(name, atk, price); }
+    TankWeapon(map<string, vector<int>> &arm, string name)
+    { 
+        if (!arm[name].empty())
+            Weapon(name, arm[name][0]/2, arm[name][1]);
+        else
+            cout<<"Error: 未建立物件 - TankWeapon\n";
+    }
 
     ~TankWeapon(){}
 };
@@ -51,8 +65,13 @@ class AssassinWeapon:
     public Weapon
 {
 public:
-    AssassinWeapon(string name, int atk, int price)
-    { Weapon(name, atk, price); }
+    AssassinWeapon(map<string, vector<int>> &arm, string name)
+    { 
+        if (!arm[name].empty())
+            Weapon(name, arm[name][0]*2, arm[name][1]);
+        else
+            cout<<"Error: 未建立物件 - TankWeapon\n";
+    }
 
     ~AssassinWeapon(){}
 };
@@ -60,11 +79,66 @@ public:
 class WeaponShop:
     public Weapon
 {
+protected:
+    map<string, vector<int>> weapons;
+
 public:
-    WeaponShop(){}
+    WeaponShop()
+    {
+        fstream file("res/Weapons.csv");
+        if (!file) return;
+    
+        string line = "";
+        while(getline(file, line) && line.length())
+        {
+            int prev_index = 0, index = 0;
+
+            // 整行字串分割
+            vector<string> temp{};
+            for (char &c: line)
+            {
+                index = &c - &line[0]; // 透過位址差值取得 index
+                if (c == ',' || &c == &line[line.length()-1]) // 若當前字元為 逗號 或 最後一字
+                {
+                    temp.push_back(line.substr(prev_index, index));
+                    prev_index = c==','? index+1 : index;
+                }
+            }
+
+            for (auto &t: temp)
+            {
+                if (&t == &temp[0])
+                    weapons[t] = {};
+                else
+                    weapons[temp[0]].push_back(stoi(t));
+            }
+        }
+        file.close();
+    }
     ~WeaponShop(){}
 
-    Weapon *makeWeapon(int option);
-    Weapon *makeWeapon(int mob, int option);
+    map<string, vector<int>> getList()
+    {
+        return weapons;
+    }
+
+    Weapon *makeWeapon(int option, string item_name)
+    {
+        switch (option)
+        {
+        case 1: // Berserker
+            return new BerserkerWeapon(weapons, item_name);
+            break;
+        case 2: // Tank
+            return new TankWeapon(weapons, item_name);
+            break;
+        case 3: // Assassin
+            return new AssassinWeapon(weapons, item_name);
+            break;
+        default:
+            return NULL;
+            break;
+        }
+    }
 };
 #endif

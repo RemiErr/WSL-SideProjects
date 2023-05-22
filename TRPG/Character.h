@@ -11,14 +11,14 @@ using namespace std;
 class Character
 {
 protected:
-    string Role;
+    string Role; // 職業名稱
     int Health_Max;
     int Health;
     int ATK;
     int DEF;
     int Money;
 
-    // 會以函式 new 物件出來，所以用指標確保能抓到該位址
+    // 會以函式 new 物件出來，所以用指標抓取該位址
     Weapon *weapon;
     Armor *armor;
     // 解除裝備
@@ -32,29 +32,44 @@ protected:
     
 
 public:
-    Character(){}
-    Character(string role, int health, int atk, int def, int money)
+    Character(string role = "", int health = 0, int atk = 0, int def = 0, int money = 0)
     {
-        Role = role;
-        Health_Max = health;
-        Health = health;
-        ATK = atk;
-        DEF = def;
-        Money = money;
+        setRole(role);
+        setState(health, health, atk, def);
+        setMoney(money);
         weapon = new Weapon();
         armor = new Armor();
     }
     ~Character() { delSuit(); }
 
-    void setRole(string role);
-    void setState(int health_max, int health, int atk, int def);
-    void setMoney();
+    // 設定職業
+    void setRole(string role)
+    {
+        Role = role;
+    }
+
+    void setState(int health_max, int health, int atk, int def)
+    {
+        Health_Max = health_max;
+        Health = health;
+        ATK = atk;
+        DEF = def;
+    }
+
+    void setMoney(int money)
+    {
+        Money = money;
+    }
+
+    // 設定角色武器
     void setWeapon(Weapon *wep)
     {
         Money -= wep->getPrice();
         ATK += wep->getATK();
         weapon = wep;
     }
+
+    // 設定角色防具
     void setArmor(Armor *arm)
     {
         Money -= arm->getPrice();
@@ -69,9 +84,9 @@ public:
     Weapon *getWeapon() { return weapon; }
     Armor *getArmor() { return armor; }
 
-    void onHit(double dmg)
+    void onHit(int dmg)
     {
-        dmg = DEF / (dmg + DEF);
+        dmg = int((dmg * dmg) / (dmg/2 + DEF) + 0.5); // 四捨五入
         Health -= dmg;
         if (Health < 0) Health = 0;
     }
@@ -109,10 +124,65 @@ public:
     ~Assassin() { delSuit(); }
 };
 
-Character *makeRole(int option)
+class Monster:
+    public Character
+{
+private:
+    map<string, vector<int>> monsters;
+
+    void loadData()
+    {
+        fstream file("res/Monsters.csv");
+        if (!file) return;
+    
+        string line = "";
+        while(getline(file, line) && line.length())
+        {
+            int prev_index = 0, index = 0;
+
+            // 整行字串分割
+            vector<string> temp{};
+            for (char &c: line)
+            {
+                index = &c - &line[0]; // 透過位址差值取得 index
+                if (c == ',' || &c == &line[line.length()-1]) // 若當前字元為 逗號 或 最後一字
+                {
+                    temp.push_back(line.substr(prev_index, index));
+                    prev_index = c==','? index+1 : index;
+                }
+            }
+
+            for (auto &t: temp)
+            {
+                if (&t == &temp[0])
+                    monsters[t] = {};
+                else
+                    monsters[temp[0]].push_back(stoi(t));
+            }
+        }
+        file.close();
+    }
+
+public:
+    Monster(){};
+    Monster(string name)
+    {
+        loadData();
+        Character(name, monsters[name][0], monsters[name][1],
+                        monsters[name][2], monsters[name][3]);
+    }
+    ~Monster() { delSuit(); }
+};
+
+Character *makeRole(int option, string name = "")
 {
     switch (option)
     {
+    case 0:
+        if (!name.empty())
+            return new Monster(name);
+        else return NULL;
+        break;
     case 1:
         return new Berserker();
         break;
@@ -122,27 +192,9 @@ Character *makeRole(int option)
     case 3:
         return new Assassin();
         break;
+    default:
+        return NULL;
+        break;
     }
 }
-
-// class RoleMaker
-// {
-// public:
-//     // 利用指標，將建立的角色記憶體位址，存放在 CharacterMaker 裡
-//     Character *makeCharacter(int option)
-//     {
-//         switch (option)
-//         {
-//         case 1:
-//             return new Berserker();
-//             break;
-//         case 2:
-//             return new Tank();
-//             break;
-//         case 3:
-//             return new Assassin();
-//             break;
-//         }
-//     }
-// };
 #endif
