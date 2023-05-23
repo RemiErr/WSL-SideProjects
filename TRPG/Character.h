@@ -1,11 +1,9 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include "FileManager.h"
 #include "Weapon.h"
 #include "Armor.h"
-#include <string>
-#include <vector>
-using namespace std;
 
 // 基礎角色資料
 class Character
@@ -132,35 +130,8 @@ private:
 
     void loadData()
     {
-        fstream file("res/Monsters.csv");
-        if (!file) return;
-    
-        string line = "";
-        while(getline(file, line) && line.length())
-        {
-            int prev_index = 0, index = 0;
-
-            // 整行字串分割
-            vector<string> temp{};
-            for (char &c: line)
-            {
-                index = &c - &line[0]; // 透過位址差值取得 index
-                if (c == ',' || &c == &line[line.length()-1]) // 若當前字元為 逗號 或 最後一字
-                {
-                    temp.push_back(line.substr(prev_index, index));
-                    prev_index = c==','? index+1 : index;
-                }
-            }
-
-            for (auto &t: temp)
-            {
-                if (&t == &temp[0])
-                    monsters[t] = {};
-                else
-                    monsters[temp[0]].push_back(stoi(t));
-            }
-        }
-        file.close();
+        FileManager file("res/Monsters.csv");
+        monsters = file.getData();
     }
 
 public:

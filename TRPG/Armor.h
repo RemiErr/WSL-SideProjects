@@ -1,12 +1,7 @@
 #ifndef ARMOR_H
 #define ARMOR_H
 
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <string>
-using namespace std;
+#include "FileManager.h"
 
 // 基礎防具資料
 class Armor
@@ -88,35 +83,8 @@ protected:
 public:
     ArmorShop()
     {
-        fstream file("res/Armors.csv");
-        if (!file) return;
-    
-        string line = "";
-        while(getline(file, line) && line.length())
-        {
-            int prev_index = 0, index = 0;
-
-            // 整行字串分割
-            vector<string> temp{};
-            for (char &c: line)
-            {
-                index = &c - &line[0]; // 透過位址差值取得 index
-                if (c == ',' || &c == &line[line.length()-1]) // 若當前字元為 逗號 或 最後一字
-                {
-                    temp.push_back(line.substr(prev_index, index));
-                    prev_index = c==','? index+1 : index;
-                }
-            }
-
-            for (auto &t: temp)
-            {
-                if (&t == &temp[0])
-                    armors[t] = {};
-                else
-                    armors[temp[0]].push_back(stoi(t));
-            }
-        }
-        file.close();
+        FileManager file("res/Armors.csv");
+        armors = file.getData();
     }
     ~ArmorShop(){}
 
