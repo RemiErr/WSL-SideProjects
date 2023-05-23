@@ -46,12 +46,12 @@ public:
         Role = role;
     }
 
-    void setState(int health_max, int health, int atk, int def)
+    void setState(int health_max = -1, int health = -1, int atk = -1, int def = -1)
     {
-        Health_Max = health_max;
-        Health = health;
-        ATK = atk;
-        DEF = def;
+        if (health_max != -1) Health_Max = health_max;
+        if (health != -1) Health = health;
+        if (atk != -1) ATK = atk;
+        if (def != -1) DEF = def;
     }
 
     void setMoney(int money)
@@ -60,17 +60,17 @@ public:
     }
 
     // 設定角色武器
-    void setWeapon(Weapon *wep)
+    void setWeapon(Weapon *wep, bool m_flag = true)
     {
-        Money -= wep->getPrice();
+        if (m_flag) Money -= wep->getPrice();
         ATK += wep->getATK();
         weapon = wep;
     }
 
     // 設定角色防具
-    void setArmor(Armor *arm)
+    void setArmor(Armor *arm, bool m_flag = true)
     {
-        Money -= arm->getPrice();
+        if (m_flag) Money -= arm->getPrice();
         Health_Max += arm->getHealth();
         DEF += arm->getDEF();
         armor = arm;
@@ -89,7 +89,7 @@ public:
         if (Health < 0) Health = 0;
     }
 
-    void isPotion(int recovery)
+    void isRecovery(int recovery)
     {
         Health += recovery;
         if (Health > Health_Max)
@@ -102,7 +102,16 @@ class Berserker:
     public Character
 {
 public:
-    Berserker() { Character("狂戰士", 1000, 50, 20, 500); }
+    Berserker()
+    {
+        Role = "狂戰士";
+        Health_Max = 1000;
+        Health = Health_Max;
+        ATK = 50;
+        DEF = 20;
+        Money = 500;
+        Character(Role, Health, ATK, DEF, Money);
+    }
     ~Berserker() { delSuit(); }
 };
 
@@ -110,7 +119,16 @@ class Tank:
     public Character
 {
 public:
-    Tank() { Character("坦克", 1600, 15, 60, 500); }
+    Tank()
+    {
+        Role = "坦克";
+        Health_Max = 1600;
+        Health = Health_Max;
+        ATK = 15;
+        DEF = 60;
+        Money = 500;
+        Character(Role, Health, ATK, DEF, Money);
+    }
     ~Tank() { delSuit(); }
 };
 
@@ -118,7 +136,16 @@ class Assassin:
     public Character
 {
 public:
-    Assassin() { Character("刺客", 850, 100, 10, 500); }
+    Assassin()
+    {
+        Role = "刺客";
+        Health_Max = 850;
+        Health = Health_Max;
+        ATK = 100;
+        DEF = 10;
+        Money = 500;
+        Character(Role, Health, ATK, DEF, Money);
+    }
     ~Assassin() { delSuit(); }
 };
 
@@ -139,8 +166,13 @@ public:
     Monster(string name)
     {
         loadData();
-        Character(name, monsters[name][0], monsters[name][1],
-                        monsters[name][2], monsters[name][3]);
+        Role = name;                    // 用 職業名 存放 怪物名
+        Health_Max = monsters[name][0]; // 血量
+        Health = Health_Max;
+        ATK = monsters[name][1];        // 攻擊力
+        DEF = monsters[name][2];        // 防禦力
+        Money = monsters[name][3];      // 掉落金幣
+        Character(name, Health, ATK, DEF, Money);
     }
     ~Monster() { delSuit(); }
 };

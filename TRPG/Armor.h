@@ -33,10 +33,15 @@ class BerserkerArmor:
     public Armor
 {
 public:
-    BerserkerArmor(map<string, vector<int>> &arm, string name)
+    BerserkerArmor(string name, map<string, vector<int>> &arm)
     { 
         if (!arm[name].empty())
-            Armor(name, arm[name][0], arm[name][1], arm[name][2]); // 防禦 血量 價格
+        {
+            Name = name;
+            DEF = arm[name][0];
+            Price = arm[name][1];
+            Armor(name, DEF, Price);
+        }
         else
             cout<<"Error: 未建立物件 - BerserkerArmor\n";
     }
@@ -48,10 +53,15 @@ class TankArmor:
     public Armor
 {
 public:
-    TankArmor(map<string, vector<int>> &arm, string name)
+    TankArmor(string name, map<string, vector<int>> &arm)
     { 
         if (!arm[name].empty())
-            Armor(name, arm[name][0]*2, arm[name][1], arm[name][2]);
+        {
+            Name = name;
+            DEF = arm[name][0] * 2;
+            Price = arm[name][1];
+            Armor(name, DEF, Price);
+        }
         else
             cout<<"Error: 未建立物件 - TankArmor\n";
     }
@@ -63,10 +73,15 @@ class AssassinArmor:
     public Armor
 {
 public:
-    AssassinArmor(map<string, vector<int>> &arm, string name)
+    AssassinArmor(string name, map<string, vector<int>> &arm)
     { 
         if (!arm[name].empty())
-            Armor(name, arm[name][0]/2, arm[name][1], arm[name][2]);
+        {
+            Name = name;
+            DEF = arm[name][0] / 2;
+            Price = arm[name][1];
+            Armor(name, DEF, Price);
+        }
         else
             cout<<"Error: 未建立物件 - AssassinArmor\n";
     }
@@ -98,13 +113,13 @@ public:
         switch (option)
         {
         case 1: // Berserker
-            return new BerserkerArmor(armors, item_name);
+            return new BerserkerArmor(item_name, armors);
             break;
         case 2: // Tank
-            return new TankArmor(armors, item_name);
+            return new TankArmor(item_name, armors);
             break;
         case 3: // Assassin
-            return new AssassinArmor(armors, item_name);
+            return new AssassinArmor(item_name, armors);
             break;
         default:
             return NULL;

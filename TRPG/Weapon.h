@@ -31,12 +31,17 @@ class BerserkerWeapon:
     public Weapon
 {
 public:
-    BerserkerWeapon(map<string, vector<int>> &arm, string name)
+    BerserkerWeapon(string name, map<string, vector<int>> &wep)
     { 
-        if (!arm[name].empty())
-            Weapon(name, arm[name][0], arm[name][1]);
+        if (!wep[name].empty())
+        {
+            Name = name;
+            ATK = wep[name][0];
+            Price = wep[name][1];
+            Weapon(name, ATK, Price);
+        }
         else
-            cout<<"Error: 未建立物件 - TankWeapon\n";
+            cout<<"Error: 未建立物件 - BerserkerWeapon\n";
     }
 
     ~BerserkerWeapon(){}
@@ -46,10 +51,15 @@ class TankWeapon:
     public Weapon
 {
 public:
-    TankWeapon(map<string, vector<int>> &arm, string name)
+    TankWeapon(string name, map<string, vector<int>> &wep)
     { 
-        if (!arm[name].empty())
-            Weapon(name, arm[name][0]/2, arm[name][1]);
+        if (!wep[name].empty())
+        {
+            Name = name;
+            ATK = wep[name][0] / 2;
+            Price = wep[name][1];
+            Weapon(name, ATK, Price);
+        }
         else
             cout<<"Error: 未建立物件 - TankWeapon\n";
     }
@@ -61,12 +71,17 @@ class AssassinWeapon:
     public Weapon
 {
 public:
-    AssassinWeapon(map<string, vector<int>> &arm, string name)
+    AssassinWeapon(string name, map<string, vector<int>> &wep)
     { 
-        if (!arm[name].empty())
-            Weapon(name, arm[name][0]*2, arm[name][1]);
+        if (!wep[name].empty())
+        {
+            Name = name;
+            ATK = wep[name][0] * 2;
+            Price = wep[name][1];
+            Weapon(name, ATK, Price);
+        }
         else
-            cout<<"Error: 未建立物件 - TankWeapon\n";
+            cout<<"Error: 未建立物件 - AssassinWeapon\n";
     }
 
     ~AssassinWeapon(){}
@@ -96,18 +111,25 @@ public:
         switch (option)
         {
         case 1: // Berserker
-            return new BerserkerWeapon(weapons, item_name);
+            return new BerserkerWeapon(item_name, weapons);
             break;
         case 2: // Tank
-            return new TankWeapon(weapons, item_name);
+            return new TankWeapon(item_name, weapons);
             break;
         case 3: // Assassin
-            return new AssassinWeapon(weapons, item_name);
+            return new AssassinWeapon(item_name, weapons);
             break;
         default:
             return NULL;
             break;
         }
     }
+// private:
+//     void updata(string name = "", int atk = NULL, int price = NULL)
+//     {
+//         if (!name.empty()) Name = name;
+//         if (atk != NULL) ATK = atk;
+//         if (price != NULL) Price = price;
+//     }
 };
 #endif

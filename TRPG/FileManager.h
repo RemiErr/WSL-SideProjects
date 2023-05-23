@@ -30,11 +30,11 @@ public:
     }
     ~FileManager(){};
 
-    map<string, vector<int>> getData()
+    map<string, vector<int>> getData(char split = ',')
     {
         map<string, vector<int>> data;
         ifstream file(URL);
-        if (!file) return;
+        if (!file) return {};
 
         string line = "";
         while(getline(file, line) && line.length())
@@ -46,10 +46,10 @@ public:
             for (char &c: line)
             {
                 index = &c - &line[0]; // 透過位址差值取得 index
-                if (c == ',' || &c == &line[line.length()-1]) // 若當前字元為 逗號 或 最後一字
+                if (c == split || &c == &line[line.length()-1]) // 若當前字元為 符號 或 最後一字
                 {
                     temp.push_back(line.substr(prev_index, index));
-                    prev_index = c==','? index+1 : index;
+                    prev_index = (c == split? index+1 : index);
                 }
             }
 
