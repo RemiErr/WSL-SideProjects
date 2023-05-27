@@ -20,14 +20,13 @@ protected:
     Weapon *weapon;
     Armor *armor;
     // 解除裝備
-    void delSuit()
-    {
-        if (!weapon)
-            delete weapon;
-        if (!armor)
-            delete armor;
-    }
-    
+    // void delSuit()
+    // {
+    //     if (weapon != nullptr)
+    //         delete weapon;
+    //     if (armor != nullptr)
+    //         delete armor;
+    // }
 
 public:
     Character(string role = "", int health = 0, int atk = 0, int def = 0, int money = 0)
@@ -38,7 +37,7 @@ public:
         weapon = new Weapon();
         armor = new Armor();
     }
-    ~Character() { delSuit(); }
+    ~Character() { }//delSuit(); }
 
     // 設定職業
     void setRole(string role)
@@ -76,11 +75,13 @@ public:
         armor = arm;
     }
 
-    string getRole() { return Role; }
-    vector<int> getState() { return { Health_Max, Health, ATK, DEF }; }    
-    int getMoney() { return Money; }
-    Weapon *getWeapon() { return weapon; }
-    Armor *getArmor() { return armor; }
+    // 檢查是否死亡
+    bool checkDeath()
+    {
+        if (this != nullptr && this->getState()[1]>0)
+            return false;
+        return true;
+    }
 
     void onHit(int dmg)
     {
@@ -95,6 +96,12 @@ public:
         if (Health > Health_Max)
             Health = Health_Max;
     }
+
+    string getRole() { return Role; }
+    vector<int> getState() { return { Health_Max, Health, ATK, DEF }; }    
+    int getMoney() { return Money; }
+    Weapon *getWeapon() { return weapon; }
+    Armor *getArmor() { return armor; }
 };
 
 // 各職業差異設定
@@ -112,7 +119,7 @@ public:
         Money = 500;
         Character(Role, Health, ATK, DEF, Money);
     }
-    ~Berserker() { delSuit(); }
+    ~Berserker() { }//delSuit(); }
 };
 
 class Tank:
@@ -129,7 +136,7 @@ public:
         Money = 500;
         Character(Role, Health, ATK, DEF, Money);
     }
-    ~Tank() { delSuit(); }
+    ~Tank() { }//delSuit(); }
 };
 
 class Assassin:
@@ -146,7 +153,7 @@ public:
         Money = 500;
         Character(Role, Health, ATK, DEF, Money);
     }
-    ~Assassin() { delSuit(); }
+    ~Assassin() { }//delSuit(); }
 };
 
 class Monster:
@@ -174,7 +181,7 @@ public:
         Money = monsters[name][3];      // 掉落金幣
         Character(name, Health, ATK, DEF, Money);
     }
-    ~Monster() { delSuit(); }
+    ~Monster() { }//delSuit(); }
 };
 
 Character *makeRole(int option, string name = "")
@@ -196,7 +203,7 @@ Character *makeRole(int option, string name = "")
         return new Assassin();
         break;
     default:
-        return NULL;
+        return new Character();
         break;
     }
 }
