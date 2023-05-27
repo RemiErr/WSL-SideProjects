@@ -1,6 +1,11 @@
 #include "Event.h"
+
+#ifndef STD_H
 using namespace std;
-#define cls clear
+#define cout std::cout
+#define cin std::cin
+#endif
+
 
 /* 事件前置宣告 */
 void runEvnG3( Event *e, Character *p, Character *m );
@@ -11,11 +16,10 @@ int main()
     CLS_M
     WeaponShop wep_shop;
     ArmorShop arm_shop;
+    Event e;
 
     Character *p = makeRole(-1);
     Character *m = makeRole(-1);
-
-    Event e;
 
     map<int, string> mlist
     {
@@ -42,7 +46,7 @@ int main()
                 runEvnG3(&e, p, m);
                 break;
         }
-        sleep(2000);
+        sleep(2500);
     }
 }
 
@@ -76,9 +80,11 @@ void runEvnG3( PTRS_M )
             }
             cout<<"\n====================\n玩家戰勝了"<<m->getRole()<<"\n====================\n";
         } else {
-            cout << "逃跑成功\n";
+            cout<<"\n==========<⊙>==========\n";
+            cout<<"|       "; e->displayText("逃跑成功");cout<<"       |\n";
+            cout<<"==========<—>==========\n";
         }
         e->endFight();
-        sleep(1500);
+        sleep(1550);
     }
 }

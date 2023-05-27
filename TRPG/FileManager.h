@@ -7,7 +7,11 @@
 #include <vector>
 #include <map>
 
+#ifndef STD_H
 using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
 
 class FileManager
 {

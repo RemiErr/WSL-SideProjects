@@ -3,6 +3,12 @@
 
 #include "FileManager.h"
 
+#ifndef STD_H
+using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
+
 // 基礎武器資料
 class Weapon
 {

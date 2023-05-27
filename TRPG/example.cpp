@@ -2,6 +2,12 @@
 #include "Weapon.h"
 #include "Armor.h"
 
+#ifndef STD_H
+using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
+
 int main ()
 {
     // 若系統為 Windows ，自動下 CMD 編碼轉換指令

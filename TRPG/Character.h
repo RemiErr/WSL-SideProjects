@@ -5,6 +5,12 @@
 #include "Weapon.h"
 #include "Armor.h"
 
+#ifndef STD_H
+using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
+
 // 基礎角色資料
 class Character
 {

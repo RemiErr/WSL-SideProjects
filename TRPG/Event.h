@@ -13,13 +13,19 @@
 #define Sleep(x) usleep(x*1000.0)
 #define CLS_M system("clear");
 #define STOP_M printf("Press Enter key to continue..."); fgetc(stdin);
+#define INT_MAX __INT_MAX__
 #endif
 
 #include <random>
 #include <cstdlib>
 #include "Character.h"
 #include "FileManager.h"
+
+#ifndef STD_H
 using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
 
 enum eState {FOR, GO, STAY, RE};
 enum eID
@@ -57,15 +63,20 @@ private:
         {RE, "relive"}
     };
 
-    void reChoose(int &option)
+
+    void reChoose(int &opt)
     {
-        while (option!=1 && option!=2)
+        while (opt!=1 && opt!=2)
         {
-            option = 0;
-            cin.clear();
-            cin.ignore();
-            displayText("請重新輸入 1 或 2！\n1.往前進\n2.待在原地\n", 2);
-            cin>>option;
+            CLS_M
+            if (!cin)
+            {
+                cin.clear();
+                cin.ignore(INT_MAX, '\n');
+            } else {
+                displayText("請重新輸入 1 或 2！\n1.往前進\n2.待在原地\n", 2);
+                cin>>opt;
+            }
         }
     }
 
@@ -106,27 +117,24 @@ public:
     {
         int width = 50;
         cout << "\n\n\n\n\n\n\n\n\n\n";
-        cout << "Loading... ";
+        // cout << "Loading... ";
 
         for (int i = 0; i <= width; ++i) {
-            cout << ".";
-            cout.flush();
+            cout << "<->" << flush;
             sleep(ms);
-            cout << "\b \b";
-            cout.flush();
+            cout << "\b" << flush;
             sleep(ms);
 
             cout << "\rLoading: ";
             cout << "[";
             for (int j = 0; j < i; ++j) {
-                cout << "=";
+                cout << "=" << flush;
             }
             cout << ">";
             for (int j = i + 1; j <= width; ++j) {
-                cout << " ";
+                cout << " " << flush;
             }
-            cout << "] " << (i * 100) / width << "%";
-            cout.flush();
+            cout << "] " << (i * 100) / width << "% " << flush;
             sleep(ms);
         }
         cout << endl;
@@ -134,12 +142,12 @@ public:
 
     // 字串轉字元，判斷是否為英數字
     // string 存取中文字時為 8進制，所以需要三組字組 (2^3)
-    bool checkChar(char &c)
+    bool checkChar(char &c, bool eng = true, bool num = true)
     {
         for (int i='a'; i<='z'; i++)
         {
-            if (c == i || c == i-20) return true;
-            if (int(c) == i-'a') return true;
+            if (eng && (c == i || c == i-20)) return true;
+            if (num && (int(c) == i-'a')) return true;
         }
         return false;
     }
@@ -148,14 +156,13 @@ public:
     {
         int count = 0;
         for (char c: msg) {
-            cout << c;
+            cout << c << flush;
             if (!checkChar(c) && count < 3)
             {
                 count++;
                 continue;
             }
             count = 0;
-            cout.flush();
             sleep([&](){
                 switch (t)
                 {
@@ -220,7 +227,7 @@ public:
             string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
             "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
             "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
-            "死亡\n你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
+            "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
             displayText(msg, 0);
             displayText("\t\t 你 死 了 (新細明體)\n", 3);
             player->setState(-1,0);
@@ -233,8 +240,8 @@ public:
 
     void desert_event(){
         CLS_M
-        string msg;
-        int option;
+        string msg = "";
+        int option = 0;
 
         msg = "你現在想做什麼？\n\n1.往前進\n2.待在原地\n";
         displayText(msg, 2);

@@ -3,7 +3,12 @@
 #include <vector>
 #include <map>
 #include <string>
+
+#ifndef STD_H
 using namespace std;
+#define cout std::cout
+#define cin std::cin
+#endif
 
 enum URL {ARM, WEP, MON};
 map<URL, string> url
