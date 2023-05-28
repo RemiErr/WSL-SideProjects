@@ -40,19 +40,21 @@ enum eID
     S_3 = 23,
     S_4 = 24,
     S_5 = 25,
-    R_1 = 31
+    R_1 = 31,
+    R_2 = 32
 };
 
 class Event
 {
 private:
-    int Leave;
+    // 事件旗標
     int Count;
-    int Evn;
+    int EvnSignal;
+    bool Leave;
     bool Fight;
 
-    Character *player;
-    Character *monster;
+    Character *p;
+    Character *m;
 
     map<string, vector<string>> Msg;
     map<eState, string> State
@@ -64,45 +66,116 @@ private:
     };
 
 
+protected:
     void reChoose(int &opt)
     {
         while (opt!=1 && opt!=2)
         {
             CLS_M
-            if (!cin)
+            if (!cin) // 等於 !cin.fail()
             {
                 cin.clear();
                 cin.ignore(INT_MAX, '\n');
             } else {
                 displayText("請重新輸入 1 或 2！\n1.往前進\n2.待在原地\n", 2);
-                cin>>opt;
+                cin >> opt;
             }
         }
     }
 
+    void Desert_go(){
+        // int rd = 13;
+        int rd = random(G_1, G_4);
+        displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
+
+        // 訊號旗標觸發設定
+        switch ( rd )
+        {
+        case G_1:
+            Leave = true;
+            break;
+        case G_2:
+            break;
+        case G_3:
+            Fight = true;
+            break;
+        case G_4:
+            Leave = true;
+            break;
+        }
+        EvnSignal = rd;
+    }
+
+    void Desert_stay(){
+        if(Count >= 3){
+            string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
+            "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
+            "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
+            "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
+            displayText(msg, 4);
+            displayText("\t\t 你 死 了 (新細明體)\n", 5);
+
+            // 設定角色歸零
+            p->setState(-1,0);
+            Leave = true;
+            Fight = false;
+            EvnSignal = 0;
+            Count = 0;
+        } else {
+            int rd = random(S_1, S_4);
+            displayText(STAY, rd-20);
+            if (rd == S_4) Fight = true;
+            EvnSignal = rd;
+        }
+    }
+
+
 public:
     Event()
     {
+        Count = 0;
+        EvnSignal = 0;
+        Leave = false;
         Fight = false;
         FileManager file("event/Events.csv");
-        Msg = file.getText();    
+        Msg = file.getText();
+    }
+    Event(Character *p, Character *m)
+    {
+        Count = 0;
+        EvnSignal = 0;
+        Leave = false;
+        Fight = false;
+        FileManager file("event/Events.csv");
+        Msg = file.getText();
+        upPtr(p, m);
     }
     ~Event(){}
 
+    // 是否進入戰鬥
     bool isFight() { return Fight; }
-    void endFight() { Fight = false; Evn = 0; }
-    int whichEvent() { return Evn; }
-    int getLeave() { return Leave; }
+    // 是否倒下
+    bool isLeave() { return Leave; }
+    // 回傳事件編號
+    int whichEvent() { return EvnSignal; }
+    // 結束事件
+    void endEvent()
+    {
+        Fight = false;
+        Leave = false;
+        EvnSignal = 0;
+    }
 
+    // 更新玩家及怪物的指標
     bool upPtr(Character *p = nullptr, Character *m = nullptr)
     {
-        if (p == nullptr && m == nullptr) return false;
-        if (p != nullptr) player = p;
-        if (m != nullptr) monster = m;
+        if (!p && !m) return false;
+        if (p) this->p = p;
+        if (m) this->m = m;
         return true;
     }
 
-    //隨機 利用<random>2^19937散度
+    // 隨機 利用<random>2^19937散度
     int random(int min, int max) {
         static random_device rd;
         static mt19937 rng(rd());
@@ -112,19 +185,13 @@ public:
         return ran;
     }
 
-    //加載動畫
+    // 加載動畫
     void showLoadingAnimation(double ms = 10)
     {
         int width = 50;
         cout << "\n\n\n\n\n\n\n\n\n\n";
-        // cout << "Loading... ";
 
         for (int i = 0; i <= width; ++i) {
-            cout << "<->" << flush;
-            sleep(ms);
-            cout << "\b" << flush;
-            sleep(ms);
-
             cout << "\rLoading: ";
             cout << "[";
             for (int j = 0; j < i; ++j) {
@@ -136,12 +203,17 @@ public:
             }
             cout << "] " << (i * 100) / width << "% " << flush;
             sleep(ms);
+
+            cout << "<->" << flush;
+            sleep(ms);
+            cout << "\b" << flush;
+            sleep(ms);
         }
         cout << endl;
     }
 
-    // 字串轉字元，判斷是否為英數字
-    // string 存取中文字時為 8進制，所以需要三組字組 (2^3)
+    /* 字串轉字元，判斷是否為英數字 */
+    // string、char 以 8 bit (1 Bytes) 存取字元，中文字為 2 Bytes
     bool checkChar(char &c, bool eng = true, bool num = true)
     {
         for (int i='a'; i<='z'; i++)
@@ -151,7 +223,8 @@ public:
         }
         return false;
     }
-    // 逐字逐句顯示文本，延遲 0 ~ 4 級 (15 ~ 75 ms)
+
+    // 逐字逐句顯示文本，延遲 0 ~ 5 級 (15 ~ 90 ms)
     void displayText(string msg, int t = 1)
     {
         int count = 0;
@@ -182,11 +255,13 @@ public:
                     return 75;
                     break;
                 case 5:
-                    return 500;
+                    return 90;
                     break;
-                default:
                 case -1:
                     return 0;
+                    break;
+                default:
+                    return t;
                     break;
                 }
             }());
@@ -198,62 +273,41 @@ public:
         displayText(temp, t);
     }
 
-    // void foreword(){
-    //     displayText(FOR);
-    // }
-
-    void Desert_go(){
-        // int rd = random(1,4);
-        // displayText(GO, rd, rd!=4?1:0);
-        int rd = 13;
-        displayText(GO, rd-10, rd!=4?1:0);
-        switch ( rd )
+    // 檢查玩家是否存活，並更新訊號
+    bool Desert_alive(){
+        if (p->getState()[1] > 0)
         {
-        // case 1:
-        case G_3:
-            Fight = true;
-            Evn = rd;
-            break;
-        case 4:
-            Leave = 1;
-            break;
-        default:
-            break;
+            CLS_M
+            if (Leave) EvnSignal = R_1;
+            return true;
         }
+
+        EvnSignal = R_2;
+        return false;
     }
 
-    void Desert_stay(){
-        if(Count > 3){
-            string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
-            "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
-            "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
-            "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
-            displayText(msg, 0);
-            displayText("\t\t 你 死 了 (新細明體)\n", 3);
-            player->setState(-1,0);
-            Leave = 1;
-        } else {
-            int rd = random(1,4);
-            displayText(STAY, rd, rd!=4?1:0);
-        }
-    }
+    // 事件選項
+    bool Desert_menu(){
+        // 若碰到恢復事件，跳過該次選擇
+        if(EvnSignal == R_1 || EvnSignal == R_2)
+            return true;
 
-    void desert_event(){
         CLS_M
         string msg = "";
         int option = 0;
 
-        msg = "你現在想做什麼？\n\n1.往前進\n2.待在原地\n";
+        msg = "你現在想做什麼？\n\n(1) 往前進\n(2) 待在原地\n(3) 離開遊戲\n";
         displayText(msg, 2);
-        cin>>option;
+        cin >> option;
         reChoose(option);
 
         switch (option)
         {
         case 1:
-            msg="你選擇了前進\n";
+            msg = "你選擇了前進\n";
             displayText(msg, 2);
             Desert_go();
+            Count = 0;
             break;
         case 2:
             msg="你選擇了待在原地\n";
@@ -261,10 +315,15 @@ public:
             Desert_stay();
             Count++;
             break;
+        case 3:
+            return false;
+            break;
         default:
             reChoose(option);
             break;
         }
+        // Desert_alive();
+        return true;
     }
 };
 #endif

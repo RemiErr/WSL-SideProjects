@@ -37,8 +37,8 @@ int main ()
 
 
     // 角色名稱 (職業)，存起來方便後面寫程式用
-    string ply_role = player->getRole();
-    string mon_name = monster->getRole(); 
+    string ply_role = player->getRoleName();
+    string mon_name = monster->getRoleName(); 
     
     // 角色狀態 (最大血量 當前血量 攻擊力 防禦力)
     vector<int> ply_state = player->getState();
@@ -53,7 +53,7 @@ int main ()
     cout << "血量: " << ply_state[1] << " / " << ply_state[0] << endl;
     cout << "攻擊力: " << ply_state[2] << " 防禦力: " << ply_state[3] << endl;
     cout << "金幣: " << player->getMoney() << "\n====================" << endl;
-    cout << "職業: " << player->getRole()
+    cout << "職業: " << player->getRoleName()
          << "\n武器: " << player->getWeapon()->getName()
          << "\n防具: " << player->getArmor()->getName() << endl;
 

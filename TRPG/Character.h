@@ -15,7 +15,8 @@ using namespace std;
 class Character
 {
 protected:
-    string Role; // 職業名稱
+    string Role_Name; // 職業名稱
+    int Role_Type; // 職業名稱
     int Health_Max;
     int Health;
     int ATK;
@@ -25,14 +26,7 @@ protected:
     // 會以函式 new 物件出來，所以用指標抓取該位址
     Weapon *weapon;
     Armor *armor;
-    // 解除裝備
-    // void delSuit()
-    // {
-    //     if (weapon != nullptr)
-    //         delete weapon;
-    //     if (armor != nullptr)
-    //         delete armor;
-    // }
+
 
 public:
     Character(string role = "", int health = 0, int atk = 0, int def = 0, int money = 0)
@@ -43,12 +37,16 @@ public:
         weapon = new Weapon();
         armor = new Armor();
     }
-    ~Character() { }//delSuit(); }
+    ~Character(){}
 
     // 設定職業
     void setRole(string role)
     {
-        Role = role;
+        Role_Name = role;
+        if      (role == "狂戰士") Role_Type = 1;
+        else if (role == "坦克")   Role_Type = 2;
+        else if (role == "刺客")   Role_Type = 3;
+        else Role_Type = 0;
     }
 
     void setState(int health_max = -1, int health = -1, int atk = -1, int def = -1)
@@ -62,6 +60,7 @@ public:
     void setMoney(int money)
     {
         Money = money;
+        if (Money < 0) Money = 0;
     }
 
     // 設定角色武器
@@ -89,11 +88,12 @@ public:
         return true;
     }
 
-    void onHit(int dmg)
+    int onHit(int dmg)
     {
         dmg = int((dmg * dmg) / (dmg/2 + DEF) + 0.5); // 四捨五入
         Health -= dmg;
         if (Health < 0) Health = 0;
+        return dmg;
     }
 
     void isRecovery(int recovery)
@@ -103,8 +103,9 @@ public:
             Health = Health_Max;
     }
 
-    string getRole() { return Role; }
-    vector<int> getState() { return { Health_Max, Health, ATK, DEF }; }    
+    int getRoleType() { return Role_Type; }
+    string getRoleName() { return Role_Name; }
+    vector<int> getState() { return { Health_Max, Health, ATK, DEF }; }
     int getMoney() { return Money; }
     Weapon *getWeapon() { return weapon; }
     Armor *getArmor() { return armor; }
@@ -117,15 +118,15 @@ class Berserker:
 public:
     Berserker()
     {
-        Role = "狂戰士";
+        setRole("狂戰士");
         Health_Max = 1000;
         Health = Health_Max;
         ATK = 50;
         DEF = 20;
         Money = 500;
-        Character(Role, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, Money);
     }
-    ~Berserker() { }//delSuit(); }
+    ~Berserker(){}
 };
 
 class Tank:
@@ -134,15 +135,15 @@ class Tank:
 public:
     Tank()
     {
-        Role = "坦克";
+        setRole("坦克");
         Health_Max = 1600;
         Health = Health_Max;
         ATK = 15;
         DEF = 60;
         Money = 500;
-        Character(Role, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, Money);
     }
-    ~Tank() { }//delSuit(); }
+    ~Tank(){}
 };
 
 class Assassin:
@@ -151,15 +152,15 @@ class Assassin:
 public:
     Assassin()
     {
-        Role = "刺客";
+        setRole("刺客");
         Health_Max = 850;
         Health = Health_Max;
         ATK = 100;
         DEF = 10;
         Money = 500;
-        Character(Role, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, Money);
     }
-    ~Assassin() { }//delSuit(); }
+    ~Assassin(){}
 };
 
 class Monster:
@@ -179,15 +180,21 @@ public:
     Monster(string name)
     {
         loadData();
-        Role = name;                    // 用 職業名 存放 怪物名
-        Health_Max = monsters[name][0]; // 血量
+        // 職業名 & 怪物名
+        setRole(name);
+        // 最大血量
+        Health_Max = monsters[name][0];
+        // 當前血量
         Health = Health_Max;
-        ATK = monsters[name][1];        // 攻擊力
-        DEF = monsters[name][2];        // 防禦力
-        Money = monsters[name][3];      // 掉落金幣
+        // 攻擊力
+        ATK = monsters[name][1];
+        // 防禦力
+        DEF = monsters[name][2];
+        // 掉落金幣
+        Money = monsters[name][3];
         Character(name, Health, ATK, DEF, Money);
     }
-    ~Monster() { }//delSuit(); }
+    ~Monster(){}
 };
 
 Character *makeRole(int option, string name = "")
