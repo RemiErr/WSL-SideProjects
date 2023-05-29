@@ -69,7 +69,7 @@ private:
 protected:
     void reChoose(int &opt)
     {
-        while (opt!=1 && opt!=2)
+        while (opt < 1 && 3 < opt)
         {
             CLS_M
             if (!cin) // 等於 !cin.fail()

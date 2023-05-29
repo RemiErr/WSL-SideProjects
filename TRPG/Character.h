@@ -176,7 +176,7 @@ private:
     }
 
 public:
-    Monster(){};
+    Monster(){ loadData(); };
     Monster(string name)
     {
         loadData();
@@ -195,6 +195,21 @@ public:
         Character(name, Health, ATK, DEF, Money);
     }
     ~Monster(){}
+
+    map<int, string> getNameDict()
+    {
+        map<int, string> dict;
+        vector<string> names;
+        for (auto mon: monsters)
+            names.push_back( mon.first );
+
+        for (int i=1; i <= names.size(); i++)
+        {
+            dict[i] = names[i-1];
+        }
+
+        return dict;
+    }
 };
 
 Character *makeRole(int option, string name = "")

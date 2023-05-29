@@ -93,19 +93,24 @@ public:
     ~AssassinWeapon(){}
 };
 
-class WeaponShop:
+class WeaponManager:
     public Weapon
 {
 protected:
     map<string, vector<int>> weapons;
 
 public:
-    WeaponShop()
+    WeaponManager()
     {
         FileManager file("res/Weapons.csv");
         weapons = file.getData();
     }
-    ~WeaponShop(){}
+    WeaponManager(string url)
+    {
+        FileManager file(url);
+        weapons = file.getData();
+    }
+    ~WeaponManager(){}
 
     map<string, vector<int>> getList()
     {

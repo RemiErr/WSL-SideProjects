@@ -8,8 +8,8 @@ class Armor
 {
 protected:
     string Name;
-    int Health;
     int DEF;
+    int Health;
     int Price;
 
 public:
@@ -39,8 +39,9 @@ public:
         {
             Name = name;
             DEF = arm[name][0];
-            Price = arm[name][1];
-            Armor(name, DEF, Price);
+            Health = arm[name][1];
+            Price = arm[name][2];
+            Armor(name, DEF, Health, Price);
         }
         else
             cout<<"Error: 未建立物件 - BerserkerArmor\n";
@@ -58,9 +59,10 @@ public:
         if (!arm[name].empty())
         {
             Name = name;
-            DEF = arm[name][0] * 2;
-            Price = arm[name][1];
-            Armor(name, DEF, Price);
+            DEF = arm[name][0];
+            Health = arm[name][1];
+            Price = arm[name][2];
+            Armor(name, DEF, Health, Price);
         }
         else
             cout<<"Error: 未建立物件 - TankArmor\n";
@@ -78,9 +80,10 @@ public:
         if (!arm[name].empty())
         {
             Name = name;
-            DEF = arm[name][0] / 2;
-            Price = arm[name][1];
-            Armor(name, DEF, Price);
+            DEF = arm[name][0];
+            Health = arm[name][1];
+            Price = arm[name][2];
+            Armor(name, DEF, Health, Price);
         }
         else
             cout<<"Error: 未建立物件 - AssassinArmor\n";
@@ -89,19 +92,24 @@ public:
     ~AssassinArmor(){}
 };
 
-class ArmorShop:
+class ArmorManager:
     public Armor
 {
 protected:
     map<string, vector<int>> armors;
 
 public:
-    ArmorShop()
+    ArmorManager()
     {
         FileManager file("res/Armors.csv");
         armors = file.getData();
     }
-    ~ArmorShop(){}
+    ArmorManager(string url)
+    {
+        FileManager file(url);
+        armors = file.getData();
+    }
+    ~ArmorManager(){}
 
     map<string, vector<int>> getList()
     {
