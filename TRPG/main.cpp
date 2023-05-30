@@ -88,13 +88,13 @@ void showAttack()
              << "\n目前共有 $" << p->getMoney()
              << "\n==========<+##+>==========\n";
     } else {
-        p->setMoney(p->getMoney() - m->getMoney());
-
         cout << "\n==========< - >==========\n"
-             << "玩家戰敗了" << m->getRoleName()
-             << "\n失去 $" << m->getMoney()
-             << "\n目前剩下 $" << p->getMoney()
+             << "玩家敗給了" << m->getRoleName()
+             << "\n裝備毀損 " << p->getArmor()->getName()
+            //  << "\n目前剩下 $" << p->getMoney()
              << "\n==========<+##+>==========\n";
+
+        p->setArmor( arm_drop.makeArmor(0, "") );
     }
     sleep(1000);
 }
@@ -114,7 +114,7 @@ int main()
 
     e.displayText("請選擇職業:\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
     cin >> role_opt;
-    e.reChoose(role_opt);
+    reChoose(role_opt);
     p = makeRole(role_opt);
 
     e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
@@ -125,7 +125,7 @@ int main()
     e.upPtr(p);
 
 
-    e.showLoadingAnimation(30);
+    showLoadingAnimation(30);
     sleep(20);
     cin.clear();
     cin.ignore(INT_MAX,'\n');
@@ -162,9 +162,9 @@ int main()
             case R_1:
                 if (debuff >= 0)
                 {
-                    // 依最大血量 補60%血量
+                    // 依最大血量 補20%血量
                     int health = p->getState()[0];
-                    p->isRecovery( (health / 10) * 6 );
+                    p->isRecovery( (health / 10) * 2 );
                     e.displayText( RE, 1, 3 );
                 } else {
                     // 依 debuff 狀態 扣當前血量
@@ -178,7 +178,9 @@ int main()
                 }
                 break;
             case R_2:
+                CLS_M
                 runEvnR2();
+                e.endEvent();
                 break;
         }
         f_Game = e.Desert_alive();
@@ -198,11 +200,11 @@ void runEvnG2()
     if (opt == 'y' || opt == 'Y')
     {
         // 共有三種事件
-        int rd = e.random(1, 10);
+        int rd = random(1, 10);
 
         if (rd < 7 && rd&1) // 1 3 5
         {
-            m = makeRole(0, mon_list[e.random(1, 3)]);
+            m = makeRole(0, mon_list[random(1, 3)]);
             e.displayText("從冒險者的遺物中冒出了一個黑影，那是....\n");
             sleep(500);
 
@@ -212,10 +214,10 @@ void runEvnG2()
         else if (rd < 7 && !(rd&1)) // 2 4 6
         {
             char opt;
-            int chance = e.random(1, 10);
+            int chance = random(1, 10);
 
-            string arm_name = arm_drop_names[ e.random(0, arm_drop_names.size()-1) ];
-            string wep_name = wep_drop_names[ e.random(0, wep_drop_names.size()-1) ];
+            string arm_name = arm_drop_names[ random(0, arm_drop_names.size()-1) ];
+            string wep_name = wep_drop_names[ random(0, wep_drop_names.size()-1) ];
 
             Armor  *arm = arm_drop.makeArmor(p->getRoleType(), arm_name);
             Weapon *wep = wep_drop.makeWeapon(p->getRoleType(), wep_name);
@@ -254,6 +256,8 @@ void runEvnG2()
 void runEvnG3()
 {
     m = makeRole(0, "史萊姆");
+    // m = makeRole(0, "歷戰 獨眼巨人");
+
 
     char temp;
     while(e.isFight())
@@ -268,12 +272,13 @@ void runEvnG3()
         if (temp == 'y' || temp == 'Y')
         {
             showAttack();
+            break;
         } else {
             cout<<"\n==========< ⊕ >==========\n";
             e.displayText("\t逃跑成功");
             cout<<"\n==========<-##->==========\n";
+            break;
         }
-        e.endEvent();
         sleep(1550);
     }
 }
@@ -357,8 +362,8 @@ void runEvnS2()
 void runEvnS4()
 {
     m = makeRole(0, "哥布林");
-    string wep_name = wep_drop_names[ e.random(0, wep_drop_names.size()-1) ];
-    Weapon *m_wep = new MonsterWeapon(wep_name, e.random(0, 2)); // 回傳特別武器
+    string wep_name = wep_drop_names[ random(0, wep_drop_names.size()-1) ];
+    Weapon *m_wep = new MonsterWeapon(wep_name, random(0, 2)); // 回傳特別武器
 
     showAttack();
     CLS_M
@@ -370,34 +375,39 @@ void runEvnS4()
 
 void runEvnR2()
 {
-    // 隨機損失當前 10 ~ 30 % 金錢
-    int temp = p->getMoney();
-    if (temp <= 0)
+    // 隨機損失當前 10 ~ 30 % + 200 金錢
+    int p_money = p->getMoney();
+    int lost = random(p_money / 10, (p_money / 10) * 3) + 200;
+    if (p_money - lost > 0)
     {
+        p->setMoney( p_money - lost );
+    } else {
         endGame();
         return;
     }
 
-    int lost = e.random(temp / 10, (temp / 10) * 3);
-    p->setMoney( temp - lost );
+    // 依最大血量 補80%血量
+    int health = p->getState()[0];
+    p->isRecovery( (health / 10) * 8 );
+
     e.displayText( RE, 2);
     cout<<"你付了 $"<<lost<<" 給旅人，他心滿意足的離開了\n";
 
-    if (e.random(1, 5) > 3)
+    if (random(1, 5) > 3)
     {
         char opt;
-        string wep_name = wep_drop_names[ e.random(0, wep_drop_names.size()-1) ];
-        Weapon *wep = wep_drop.makeWeapon( p->getRoleType(), wep_name );
-        cout << "旅人在離開前，留下了 <" << wep->getName() << ">\n\n是否要更換裝備？ (y/n)\n";
+        string arm_name = arm_drop_names[ random(0, arm_drop_names.size()-1) ];
+        Armor *arm = arm_drop.makeArmor( p->getRoleType(), arm_name );
+        cout << "旅人在離開前，留下了 <" << arm->getName() << ">\n\n是否要更換裝備？ (y/n)\n";
         cin >> opt;
         CLS_M
         if (opt == 'y' || opt == 'Y')
         {
-            p->setWeapon(wep, false);
-            cout << "你換上了 " << p->getWeapon()->getName() << endl;
+            p->setArmor(arm, false);
+            cout << "你換上了 " << p->getArmor()->getName() << endl;
             showPlayerState();
         } else {
-            cout << "你留下了那把武器，離開了\n";
+            cout << "你留下了那件防具，離開了\n";
         }
     }
     sleep(1500);

@@ -16,6 +16,7 @@
 #define INT_MAX __INT_MAX__
 #endif
 
+#include <set>
 #include <random>
 #include <cstdlib>
 #include "Character.h"
@@ -44,6 +45,72 @@ enum eID
     R_2 = 32
 };
 
+
+// 隨機 利用<random>2^19937散度
+int random(int min, int max) {
+    static random_device rd;
+    static mt19937 rng(rd());
+    int ran;
+    uniform_int_distribution<int> dist(1, 100000);
+    ran = dist(rng) % (max-min+1) + min;
+    return ran;
+}
+
+void reChoose(int &opt, int min = 1, int max = 3)
+{
+    while (opt < min || max < opt)
+    {
+        if (!cin) // 等於 !cin.fail()
+        {
+            cin.clear();
+            cin.ignore(INT_MAX, '\n');
+        } else {
+            cout << "請重新輸入數字: ";
+            cin >> opt;
+        }
+    }
+}
+
+// 加載動畫
+void showLoadingAnimation(double ms = 10)
+{
+    int width = 50;
+    cout << "\n\n\n";
+
+    for (int i = 0; i <= width; ++i) {
+        cout << "\rLoading: ";
+        cout << "[";
+        for (int j = 0; j < i; ++j) {
+            cout << "=" << flush;
+        }
+        cout << ">";
+        for (int j = i + 1; j <= width; ++j) {
+            cout << " " << flush;
+        }
+        cout << "] " << (i * 100) / width << "% " << flush;
+        sleep(ms);
+
+        cout << "<->" << flush;
+        sleep(ms);
+        cout << "\b" << flush;
+        sleep(ms);
+    }
+    cout << endl;
+}
+
+/* 字串轉字元，判斷是否為英數字 */
+// string、char 以 8 bit (1 Bytes) 存取字元，中文字為 2 Bytes
+bool checkChar(char &c, bool eng = true, bool num = true)
+{
+    for (int i='a'; i<='z'; i++)
+    {
+        if (eng && (c == i || c == i-20)) return true;
+        if (num && (int(c) == i-'a')) return true;
+    }
+    return false;
+}
+
+
 class Event
 {
 private:
@@ -59,6 +126,10 @@ private:
     // 例外事件 ID
     vector<eID> Except;
 
+    // 事件排程
+    vector<int> Ds_go;
+    vector<int> Ds_stay;
+
     map<string, vector<string>> Msg;
     map<eState, string> State
     {
@@ -70,9 +141,26 @@ private:
 
 
 protected:
+    // 確保亂數不重複
+    void Desert_rand(vector<int> &ds,int min, int max){
+        for(int i=0; i < max-min+1; i++)
+        {
+            ds.push_back(random(min, max));
+            for (int j=0; j < i; j++)
+                if (ds[i] == ds[j])
+                {
+                    ds.pop_back();
+                    i--;
+                    break;
+                }
+        }
+    }
+
     void Desert_go(){
-        // int rd = 11;
-        int rd = random(G_1, G_4);
+        if (Ds_go.empty()) Desert_rand(Ds_go, G_1, G_4);
+        int rd = Ds_go.at(0);
+        Ds_go.erase( Ds_go.begin() );
+
         displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
 
         // 訊號旗標觸發設定
@@ -108,7 +196,10 @@ protected:
             EvnSignal = 0;
             Count = 0;
         } else {
-            int rd = random(S_1, S_4);
+            if (Ds_stay.empty()) Desert_rand(Ds_stay, S_1, S_4);
+            int rd = Ds_stay.at(0);
+            Ds_stay.erase( Ds_stay.begin() );
+
             displayText(STAY, rd-20);
             if (rd == S_4) Fight = true;
             EvnSignal = rd;
@@ -162,70 +253,6 @@ public:
         if (p) this->p = p;
         if (m) this->m = m;
         return true;
-    }
-
-    // 隨機 利用<random>2^19937散度
-    int random(int min, int max) {
-        static random_device rd;
-        static mt19937 rng(rd());
-        int ran;
-        uniform_int_distribution<int> dist(1, 100000);
-        ran = dist(rng) % (max-min+1) + min;
-        return ran;
-    }
-
-    void reChoose(int &opt, int min = 1, int max = 3)
-    {
-        while (opt < min || max < opt)
-        {
-            if (!cin) // 等於 !cin.fail()
-            {
-                cin.clear();
-                cin.ignore(INT_MAX, '\n');
-            } else {
-                displayText("請重新輸入數字: ", 2);
-                cin >> opt;
-            }
-        }
-    }
-
-    // 加載動畫
-    void showLoadingAnimation(double ms = 10)
-    {
-        int width = 50;
-        cout << "\n\n\n";
-
-        for (int i = 0; i <= width; ++i) {
-            cout << "\rLoading: ";
-            cout << "[";
-            for (int j = 0; j < i; ++j) {
-                cout << "=" << flush;
-            }
-            cout << ">";
-            for (int j = i + 1; j <= width; ++j) {
-                cout << " " << flush;
-            }
-            cout << "] " << (i * 100) / width << "% " << flush;
-            sleep(ms);
-
-            cout << "<->" << flush;
-            sleep(ms);
-            cout << "\b" << flush;
-            sleep(ms);
-        }
-        cout << endl;
-    }
-
-    /* 字串轉字元，判斷是否為英數字 */
-    // string、char 以 8 bit (1 Bytes) 存取字元，中文字為 2 Bytes
-    bool checkChar(char &c, bool eng = true, bool num = true)
-    {
-        for (int i='a'; i<='z'; i++)
-        {
-            if (eng && (c == i || c == i-20)) return true;
-            if (num && (int(c) == i-'a')) return true;
-        }
-        return false;
     }
 
     // 逐字逐句顯示文本，延遲 0 ~ 5 級 (15 ~ 90 ms)

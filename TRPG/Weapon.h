@@ -164,7 +164,7 @@ public:
             return new AssassinWeapon(item_name, weapons);
             break;
         default:
-            return NULL;
+            return new Weapon();
             break;
         }
     }

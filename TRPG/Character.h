@@ -21,15 +21,16 @@ protected:
     int Health;
     int ATK;
     int DEF;
+    int SPD;
     int Money;
 
-    // 會以函式 new 物件出來，所以用指標抓取該位址
+    // 會 new 物件出來，用指標抓取該位址
     Weapon *weapon;
     Armor *armor;
 
 
 public:
-    Character(string role = "", int health = 0, int atk = 0, int def = 0, int money = 0)
+    Character(string role = "", int health = 0, int atk = 0, int def = 0, int spd = 0, int money = 0)
     {
         setRole(role);
         setState(health, health, atk, def);
@@ -49,13 +50,14 @@ public:
         else Role_Type = 0;
     }
 
-    void setState(int health_max = -1, int health = -1, int atk = -1, int def = -1)
+    void setState(int health_max = -1, int health = -1, int atk = -1, int def = -1, int spd = -1)
     {
         if (health_max != -1) Health_Max = health_max;
         if (health != -1) Health = health;
         if (atk != -1) ATK = atk;
         if (def != -1) DEF = def;
-        
+        if (spd != -1) SPD = spd;
+
         if (Health_Max < 0) Health_Max = 0;
         if (Health < 0) Health = 0;
     }
@@ -127,8 +129,9 @@ public:
         Health = Health_Max;
         ATK = 50;
         DEF = 20;
+        SPD = 30;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }
     ~Berserker(){}
 };
@@ -144,8 +147,9 @@ public:
         Health = Health_Max;
         ATK = 15;
         DEF = 60;
+        SPD = 30;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }
     ~Tank(){}
 };
@@ -161,8 +165,9 @@ public:
         Health = Health_Max;
         ATK = 100;
         DEF = 10;
+        SPD = 30;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, Money);
+        Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }
     ~Assassin(){}
 };
@@ -194,8 +199,10 @@ public:
         ATK = monsters[name][1];
         // 防禦力
         DEF = monsters[name][2];
+        // 速度
+        SPD = monsters[name][3];
         // 掉落金幣
-        Money = monsters[name][3];
+        Money = monsters[name][4];
         Character(name, Health, ATK, DEF, Money);
     }
     ~Monster(){}

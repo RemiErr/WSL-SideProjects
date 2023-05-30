@@ -130,7 +130,7 @@ public:
             return new AssassinArmor(item_name, armors);
             break;
         default:
-            return NULL;
+            return new Armor();
             break;
         }
     }
