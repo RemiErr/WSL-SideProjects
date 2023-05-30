@@ -71,7 +71,7 @@ private:
 
 protected:
     void Desert_go(){
-        // int rd = 13;
+        // int rd = 11;
         int rd = random(G_1, G_4);
         displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
 
@@ -281,11 +281,12 @@ public:
     bool Desert_alive(){
         if (p->getRoleName().empty()) return false; // 即死事件
 
-        if (p->getState()[1] > 0)
-        {
-            if (Leave) EvnSignal = R_1; // 倒下事件
-            else EvnSignal = 0;
-        } else EvnSignal = R_2; // 被打倒
+        if (Leave)
+        {   // 倒下事件
+             EvnSignal = R_1;
+        } else if (Fight && p->getState()[1] <= 0)
+             EvnSignal = R_2; // 被打倒
+        else EvnSignal = 0;
         return true;
     }
 

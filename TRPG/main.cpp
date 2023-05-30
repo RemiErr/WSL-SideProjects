@@ -44,6 +44,7 @@ void runEvnG3();
 void runEvnS2();
 void runEvnS4();
 void runEvnR2();
+void endGame();
 
 void showPlayerState()
 {
@@ -162,15 +163,17 @@ int main()
                 if (debuff >= 0)
                 {
                     // 依最大血量 補60%血量
-                    int health = p->getState()[1];
+                    int health = p->getState()[0];
                     p->isRecovery( (health / 10) * 6 );
                     e.displayText( RE, 1, 3 );
                 } else {
                     // 依 debuff 狀態 扣當前血量
-                    int health = p->getState()[0];
+                    int health = p->getState()[1];
                     p->isRecovery( (health / 10) * debuff );
                     debuff = 0;
-                    showPlayerState();
+                    if (p->getState()[1] > 0)
+                        showPlayerState();
+                    else endGame();
                     sleep(1000);
                 }
                 break;
@@ -371,16 +374,7 @@ void runEvnR2()
     int temp = p->getMoney();
     if (temp <= 0)
     {
-        e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
-        sleep(800);
-        e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
-        sleep(900);
-        CLS_M
-        e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
-        sleep(1000);
-        e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
-        sleep(1500);
-        f_Game = false;
+        endGame();
         return;
     }
 
@@ -407,4 +401,18 @@ void runEvnR2()
         }
     }
     sleep(1500);
+}
+
+void endGame()
+{
+    e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
+    sleep(800);
+    e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
+    sleep(900);
+    CLS_M
+    e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
+    sleep(1000);
+    e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
+    sleep(1500);
+    f_Game = false;
 }
