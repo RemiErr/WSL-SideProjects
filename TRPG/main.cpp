@@ -106,24 +106,25 @@ void showAttack()
 
 
 /* 程式主體 */
+bool f_Game = true;
 int main()
 {
     CLS_M
 
+    int debuff = 0;
     int role_opt = 0;
+
     e.displayText("請選擇職業:\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
     cin >> role_opt;
-
+    e.reChoose(role_opt);
     p = makeRole(role_opt);
 
-    e.displayText("你選擇了" + p->getRoleName(), 3);
+    e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
 
     // 裝備物件, 是否扣錢
     p->setWeapon( wep_drop.makeWeapon(p->getRoleType(), "銳利刺匕"), false );
     p->setArmor( arm_drop.makeArmor(p->getRoleType(), "鐵製背心"), false );
-
-    e.upPtr(p, m);
-
+    e.upPtr(p);
 
 
     e.showLoadingAnimation(30);
@@ -131,14 +132,21 @@ int main()
     cin.clear();
     cin.ignore(INT_MAX,'\n');
     CLS_M STOP_M
-    while (e.Desert_alive() && e.Desert_menu())
+
+    /* 測試角色死亡事件 */
+    // p->setState(-1,0);
+    // p->setMoney(0);
+    // e.Desert_alive();
+
+    // 設定例外事件，跳過該回合
+    e.setExcept( {R_1, R_2} );
+    while (f_Game && e.Desert_menu())
     {
         e.upPtr(p, m);
-        // runEvnG3();
         switch(e.whichEvent())
         {
             case G_1:
-                runEvnG1();
+                debuff = -3;
                 break;
             case G_2:
                 runEvnG2();
@@ -146,36 +154,42 @@ int main()
             case G_3:
                 runEvnG3();
                 break;
-            case G_4: case R_1:
-                p->isRecovery(p->getState()[0] / 2);
-                e.displayText( RE, 1, 3 );
-                e.endEvent();
-                break;
             case S_2:
                 runEvnS2();
+                break;
+            case S_4:
+                sleep(1500);
+                runEvnS4();
+                break;
+            case R_1:
+                if (debuff >= 0)
+                {
+                    // 依最大血量 補60%血量
+                    int health = p->getState()[1];
+                    p->isRecovery( (health / 10) * 6 );
+                    e.displayText( RE, 1, 3 );
+                } else {
+                    // 依 debuff 狀態 扣當前血量
+                    int health = p->getState()[0];
+                    p->isRecovery( (health / 10) * debuff );
+                    debuff = 0;
+                    showPlayerState();
+                    sleep(1000);
+                }
                 break;
             case R_2:
                 runEvnR2();
                 break;
         }
+        f_Game = e.Desert_alive();
         e.endEvent();
-        sleep(2500);
+        sleep(1500);
     }
 }
 
 
 
 /* 事件包裝 */
-void runEvnG1()
-{
-    int health = p->getState()[1];
-    if (health > 0) p->setState(-1, (health / 10) * 8);
-    showPlayerState();
-    e.endEvent();
-    sleep(1000);
-}
-
-
 void runEvnG2()
 {
     char opt;
@@ -266,7 +280,7 @@ void runEvnG3()
 
 void runEvnS2()
 {
-    map<int, string> items;
+    map<int, string> items; // 商品清單
     int index = 1;
     int split[2] = {0};
     int num = 0;
@@ -274,49 +288,105 @@ void runEvnS2()
     cin >> opt;
     if (opt == 'y' || opt == 'Y')
     {
-        CLS_M
-        cout << "==========<  $  >==========\n"
-             << "\t[ 武 器 ]\n";
-            for (auto wep: wep_shop_list)
-            {
-                split[0] = index;
-                items[index++] = wep.first;
-                cout << split[0] << ". " << wep.first << "\t:\t";
-                for (auto &val: wep.second)
-                    cout << val << ((&val != &wep.second[wep.second.size()-1])? ", ":"\n");
-            }
-        cout << "==========<--+-->==========\n"
-             << "\t[ 防 具 ]\n";
-            for (auto arm: arm_shop_list)
-            {
-                split[1] = index;
-                items[index++] = arm.first;
-                cout << split[1] << ". "  << arm.first << "\t:\t";
-                for (auto &val: arm.second)
-                    cout << val << ((&val != &arm.second[arm.second.size()-1])? ", ":"\n");
-            }
-        cout << "==========<  $  >==========\n";
-        cout << "請輸入武器編號: ";
-        cin >> num;
+        bool f_buy = false;
+        do{
+            CLS_M
+            cout << "==========<  $  >==========\n"
+                << "\t[ 武 器 ]\n";
+                for (auto wep: wep_shop_list)
+                {
+                    split[0] = index;
+                    items[index++] = wep.first;
+                    cout << split[0] << ". " << wep.first << "\t:\t";
+                    for (auto &val: wep.second)
+                        cout << val << ((&val != &wep.second[wep.second.size()-1])? ", ":"\n");
+                }
+            cout << "==========<--+-->==========\n"
+                << "\t[ 防 具 ]\n";
+                for (auto arm: arm_shop_list)
+                {
+                    split[1] = index;
+                    items[index++] = arm.first;
+                    cout << split[1] << ". "  << arm.first << "\t:\t";
+                    for (auto &val: arm.second)
+                        cout << val << ((&val != &arm.second[arm.second.size()-1])? ", ":"\n");
+                }
+            cout << "==========<  $  >==========\n";
+            cout << "請輸入武器編號: ";
+            cin >> num;
 
-        if (0 < num && num <= split[0])
-            p->setWeapon( wep_shop.makeWeapon(p->getRoleType(), items[num]) );
-        else if (split[0] < num && num <= split[1])
-            p->setArmor( arm_shop.makeArmor(p->getRoleType(), items[num]) );
-        else cout << "\n\n\t購買失敗\n";
-        showPlayerState();
+            // 購買武器
+            if (0 < num && num <= split[0])
+            {
+                Weapon *wep = wep_shop.makeWeapon( p->getRoleType(), items[num] );
+
+                if (p->getMoney() >= wep->getPrice())
+                {
+                    f_buy = true;
+                    p->setWeapon( wep );
+                } else {
+                    f_buy = false;
+                    cout << "\n\t[ 餘額不足 請充值 ]\n";
+                }
+            }
+            // 購買防具
+            else if (split[0] < num && num <= split[1])
+            {
+                Armor *arm = arm_shop.makeArmor( p->getRoleType(), items[num] );
+
+                if (p->getMoney() >= arm->getPrice())
+                {
+                    f_buy = true;
+                    p->setArmor( arm );
+                } else {
+                    f_buy = false;
+                    cout << "\n\t[ 餘額不足 請充值 ]\n";
+                }
+            }
+            // 錯誤編號
+            else cout << "\n\t[ 請輸入正確編號 ]\n";
+
+            CLS_M
+            cout << "\t[ 目前狀態 ]\n";
+            showPlayerState();
+            sleep(1000);
+        } while (!f_buy);
     }
 }
-// void runEvnS3();
-// void runEvnS4();
-// void runEvnR1()
-// {
 
-// }
+void runEvnS4()
+{
+    m = makeRole(0, "哥布林");
+    string wep_name = wep_drop_names[ e.random(0, wep_drop_names.size()-1) ];
+    Weapon *m_wep = new MonsterWeapon(wep_name, e.random(0, 2)); // 回傳特別武器
+
+    showAttack();
+    CLS_M
+    cout << "你撿起了哥布林死前握在手上的武器 " << m_wep->getName() << "\n";
+    p->setWeapon( m_wep, false );
+    showPlayerState();
+    sleep(1500);
+}
+
 void runEvnR2()
 {
     // 隨機損失當前 10 ~ 30 % 金錢
     int temp = p->getMoney();
+    if (temp <= 0)
+    {
+        e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
+        sleep(800);
+        e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
+        sleep(900);
+        CLS_M
+        e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
+        sleep(1000);
+        e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
+        sleep(1500);
+        f_Game = false;
+        return;
+    }
+
     int lost = e.random(temp / 10, (temp / 10) * 3);
     p->setMoney( temp - lost );
     e.displayText( RE, 2);
@@ -327,18 +397,17 @@ void runEvnR2()
         char opt;
         string wep_name = wep_drop_names[ e.random(0, wep_drop_names.size()-1) ];
         Weapon *wep = wep_drop.makeWeapon( p->getRoleType(), wep_name );
-        cout << "旅人在離開前，留下了 <" << wep->getName() << ">\n\n是否要更換裝備？\n";
+        cout << "旅人在離開前，留下了 <" << wep->getName() << ">\n\n是否要更換裝備？ (y/n)\n";
         cin >> opt;
         CLS_M
         if (opt == 'y' || opt == 'Y')
         {
             p->setWeapon(wep, false);
-            cout << "你換上了 " << p->getWeapon() << endl;
+            cout << "你換上了 " << p->getWeapon()->getName() << endl;
             showPlayerState();
         } else {
             cout << "你留下了那把武器，離開了\n";
         }
     }
-    e.endEvent();
-    sleep(2000);
+    sleep(1500);
 }

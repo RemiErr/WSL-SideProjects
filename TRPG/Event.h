@@ -56,6 +56,9 @@ private:
     Character *p;
     Character *m;
 
+    // 例外事件 ID
+    vector<eID> Except;
+
     map<string, vector<string>> Msg;
     map<eState, string> State
     {
@@ -67,22 +70,6 @@ private:
 
 
 protected:
-    void reChoose(int &opt)
-    {
-        while (opt < 1 && 3 < opt)
-        {
-            CLS_M
-            if (!cin) // 等於 !cin.fail()
-            {
-                cin.clear();
-                cin.ignore(INT_MAX, '\n');
-            } else {
-                displayText("請重新輸入 1 或 2！\n1.往前進\n2.待在原地\n", 2);
-                cin >> opt;
-            }
-        }
-    }
-
     void Desert_go(){
         // int rd = 13;
         int rd = random(G_1, G_4);
@@ -93,8 +80,6 @@ protected:
         {
         case G_1:
             Leave = true;
-            break;
-        case G_2:
             break;
         case G_3:
             Fight = true;
@@ -107,7 +92,7 @@ protected:
     }
 
     void Desert_stay(){
-        if(Count >= 3){
+        if(Count >= 0){
             string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
             "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
             "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
@@ -116,8 +101,9 @@ protected:
             displayText("\t\t 你 死 了 (新細明體)\n", 5);
 
             // 設定角色歸零
-            p->setState(-1,0);
-            Leave = true;
+            p->setRole("");
+            p->setState(0,0,0,0);
+            Leave = false;
             Fight = false;
             EvnSignal = 0;
             Count = 0;
@@ -152,6 +138,8 @@ public:
     }
     ~Event(){}
 
+    // 設定例外事件
+    void setExcept(vector<eID> exc) { Except = exc; }
     // 是否進入戰鬥
     bool isFight() { return Fight; }
     // 是否倒下
@@ -163,13 +151,14 @@ public:
     {
         Fight = false;
         Leave = false;
-        EvnSignal = 0;
     }
 
     // 更新玩家及怪物的指標
     bool upPtr(Character *p = nullptr, Character *m = nullptr)
     {
-        if (!p && !m) return false;
+        if (!p && !m)
+            return false;
+
         if (p) this->p = p;
         if (m) this->m = m;
         return true;
@@ -185,11 +174,26 @@ public:
         return ran;
     }
 
+    void reChoose(int &opt, int min = 1, int max = 3)
+    {
+        while (opt < min || max < opt)
+        {
+            if (!cin) // 等於 !cin.fail()
+            {
+                cin.clear();
+                cin.ignore(INT_MAX, '\n');
+            } else {
+                displayText("請重新輸入數字: ", 2);
+                cin >> opt;
+            }
+        }
+    }
+
     // 加載動畫
     void showLoadingAnimation(double ms = 10)
     {
         int width = 50;
-        cout << "\n\n\n\n\n\n\n\n\n\n";
+        cout << "\n\n\n";
 
         for (int i = 0; i <= width; ++i) {
             cout << "\rLoading: ";
@@ -275,22 +279,21 @@ public:
 
     // 檢查玩家是否存活，並更新訊號
     bool Desert_alive(){
+        if (p->getRoleName().empty()) return false; // 即死事件
+
         if (p->getState()[1] > 0)
         {
-            CLS_M
-            if (Leave) EvnSignal = R_1;
-            return true;
-        }
-
-        EvnSignal = R_2;
-        return false;
+            if (Leave) EvnSignal = R_1; // 倒下事件
+            else EvnSignal = 0;
+        } else EvnSignal = R_2; // 被打倒
+        return true;
     }
 
     // 事件選項
     bool Desert_menu(){
-        // 若碰到恢復事件，跳過該次選擇
-        if(EvnSignal == R_1 || EvnSignal == R_2)
-            return true;
+        // 若碰到例外事件，跳過該次選擇
+        for (auto ex: Except)
+            if(EvnSignal == ex) return true;
 
         CLS_M
         string msg = "";

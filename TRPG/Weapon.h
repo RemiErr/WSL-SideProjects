@@ -31,6 +31,36 @@ public:
     int getPrice() { return Price; }
 };
 
+// 怪物武器
+class MonsterWeapon:
+    public Weapon
+{
+public:
+    MonsterWeapon(string name, int level = 0)
+    {
+        FileManager file("res/Weapons.csv");
+        map<string, vector<int>> wep = file.getData();
+        map<int, string> prev_word =
+        {
+            {0, "歷戰的"},
+            {1, "破舊的"},
+            {2, "毀損的"}
+        };
+
+        if (!wep[name].empty())
+        {
+            Name = prev_word[level] + name;
+            ATK = wep[name][0] + level==0? 50:
+                                 level==1? 25 : -25;
+            Price = 0;
+            Weapon(name, ATK, Price);
+        }
+        else
+            cout<<"Error: 未建立物件 - MonsterWeapon\n";
+    }
+
+    ~MonsterWeapon(){}
+};
 
 // 各職業武器
 class BerserkerWeapon:
@@ -121,6 +151,9 @@ public:
     {
         switch (option)
         {
+        // case 0: // Monster
+        //     return new MonsterWeapon(item_name, weapons);
+        //     break;
         case 1: // Berserker
             return new BerserkerWeapon(item_name, weapons);
             break;
