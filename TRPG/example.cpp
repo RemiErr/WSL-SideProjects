@@ -20,8 +20,8 @@ int main ()
     Character *monster;
 
     // 用來分配裝備
-    WeaponShop wep_shop;
-    ArmorShop arm_shop;
+    WeaponManager wep_shop;
+    ArmorManager arm_shop;
 
 
     int opt = 0;

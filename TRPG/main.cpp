@@ -39,16 +39,10 @@ vector<string> arm_drop_names = [](){
 }();
 
 /* 事件前置宣告 */
-void runEvnG1();
 void runEvnG2();
 void runEvnG3();
-void runEvnG4();
-void runEvnS1();
 void runEvnS2();
-void runEvnS3();
 void runEvnS4();
-void runEvnR1();
-void runEvnR1();
 void runEvnR2();
 
 void showPlayerState()
@@ -109,8 +103,11 @@ void showAttack()
 bool f_Game = true;
 int main()
 {
-    CLS_M
+    #ifdef _WIN32
+    system("chcp 65001");
+    #endif
 
+    CLS_M
     int debuff = 0;
     int role_opt = 0;
 

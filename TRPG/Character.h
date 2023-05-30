@@ -55,6 +55,9 @@ public:
         if (health != -1) Health = health;
         if (atk != -1) ATK = atk;
         if (def != -1) DEF = def;
+        
+        if (Health_Max < 0) Health_Max = 0;
+        if (Health < 0) Health = 0;
     }
 
     void setMoney(int money)
@@ -101,6 +104,7 @@ public:
         Health += recovery;
         if (Health > Health_Max)
             Health = Health_Max;
+        if (Health < 0) Health = 0;
     }
 
     int getRoleType() { return Role_Type; }
