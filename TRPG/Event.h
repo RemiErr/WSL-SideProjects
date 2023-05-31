@@ -31,7 +31,7 @@ using namespace std;
 #define cin std::cin
 #endif
 
-enum eState {FOR, GO, STAY, RE};
+enum eState {EX, FOR, GO, STAY, RE};
 enum eID
 {
     F_1 = 1,
@@ -167,18 +167,18 @@ protected:
         displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
 
         // 訊號旗標觸發設定
-        switch ( rd )
-        {
-        case G_1:
-            Leave = true;
-            break;
-        case G_3:
-            Fight = true;
-            break;
-        case G_4:
-            Leave = true;
-            break;
-        }
+        // switch ( rd )
+        // {
+        // case G_1:
+        //     Leave = true;
+        //     break;
+        // case G_3:
+        //     Fight = true;
+        //     break;
+        // case G_4:
+        //     Leave = true;
+        //     break;
+        // }
         EvnSignal = rd;
     }
 
@@ -204,7 +204,7 @@ protected:
             Ds_stay.erase( Ds_stay.begin() );
 
             displayText(STAY, rd-20);
-            if (rd == S_4) Fight = true;
+            // if (rd == S_4) Fight = true;
             EvnSignal = rd;
         }
     }
@@ -236,8 +236,10 @@ public:
     void setExcept(vector<eID> exc) { Except = exc; }
     // 是否進入戰鬥
     bool isFight() { return Fight; }
+    void isFight(bool ft) { Fight = ft; }
     // 是否倒下
     bool isLeave() { return Leave; }
+    void isLeave(bool lev) { Leave = lev; }
     // 回傳事件編號
     int whichEvent() { return EvnSignal; }
     // 結束事件
@@ -313,10 +315,14 @@ public:
 
         if (Leave)
         {   // 倒下事件
-             EvnSignal = R_1;
-        } else if (Fight && p->getState()[1] <= 0)
-             EvnSignal = R_2; // 被打倒
-        else EvnSignal = 0;
+            EvnSignal = R_1;
+        } else if (Fight && p->getState()[HP] <= 0)
+            EvnSignal = R_2; // 被打倒
+        else
+        {
+            EvnSignal = 0;
+            if (p->getState()[HP] <= 0) return false;
+        }
         return true;
     }
 
@@ -330,13 +336,16 @@ public:
         string msg = "";
         int option = 0;
 
-        msg = "你現在想做什麼？\n\n(1) 往前進\n(2) 待在原地\n(3) 離開遊戲\n";
+        msg = "你現在想做什麼？\n\n(0) 練習戰鬥\n(1) 往前進\n(2) 待在原地\n(3) 離開遊戲\n";
         displayText(msg, 2);
         cin >> option;
-        reChoose(option);
+        reChoose(option, 0, 3);
 
         switch (option)
         {
+        case 0:
+            EvnSignal = EX;
+            break;
         case 1:
             msg = "你選擇了前進\n";
             displayText(msg, 2);

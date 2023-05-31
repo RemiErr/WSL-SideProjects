@@ -45,16 +45,15 @@ void runEvnG3();
 void runEvnS2();
 void runEvnS4();
 void runEvnR2();
-void endGame();
 
 
 /* 動作函式 */
 void showPlayerState()
 {
-    cout << "\n==========< state >==========\n"
-         << "血量: "   << p->getState()[HP] << " / " << p->getState()[MAX_HP] << endl
-         << "攻擊力: " << p->getState()[ATK] << " 防禦力: " << p->getState()[DEF] << endl
-         << "金幣: "   << p->getMoney()
+    cout << "\n==========< state >=========="
+         << "\n血量: "   << p->getState()[HP] << " / " << p->getState()[MAX_HP]
+         << "\n攻擊力: " << p->getState()[ATK] << " 防禦力: " << p->getState()[DEF]
+         << "\n速度: " << p->getState()[SPD] << " 金幣: "   << p->getMoney()
          << "\n==========<---+--->=========="
          << "\n職業: "   << p->getRoleName()
          << "\n武器: " << p->getWeapon()->getName()
@@ -65,24 +64,91 @@ void showMonsterState()
 {
     cout << "==========< ⊙ >==========\n"
              << "怪物: " << m->getRoleName()
-             << ", 怪物血量: " << m->getState()[1] << " / " << m->getState()[0]
+             << ", 怪物血量: " << m->getState()[HP] << " / " << m->getState()[MAX_HP]
              << "\n==========< - >==========\n";
 }
+void creatCharacter()
+{   // 建立角色資料
+    int role_opt  = 0;
+    int role_flag = 0;
+    Character *ex;
+    do {
+        CLS_M
+        e.displayText("請選擇職業:\n\n(0) 職業數值\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
+        cin >> role_opt;
+        reChoose(role_opt, 0, 3);
 
+        // 展示數值
+        switch(role_opt)
+        {
+            case 0:
+                CLS_M
+                cout << "==========< state >==========";
+                for (int i=1; i <= 3; i++)
+                {
+                    ex = makeRole(i);
+                    cout << "\n職業: "   << ex->getRoleName()
+                        << "\n血量: "   << ex->getState()[HP] << " / " << ex->getState()[MAX_HP]
+                        << "\n攻擊力: " << ex->getState()[ATK]
+                        << "\n防禦力: " << ex->getState()[DEF]
+                        << "\n速度: " << ex->getState()[SPD]
+                        << "\n初始金幣: "   << ex->getMoney();
+                    if (i < 3) cout << "\n==========<---+--->==========";
+                    delete ex;
+                }
+                cout << "\n==========<---o--->==========\n";
+                STOP_M
+                break;
+            case 1:
+            case 2:
+            case 3:
+                ex = makeRole(role_opt);
+                cout << "你選擇的職業是： "
+                     << ex->getRoleName() << endl
+                     << "確定要創建這個角色嗎？\n(0) 取消 (1) 確定\n";
+                cin  >> role_flag;
+                reChoose(role_flag, 0, 1);
+                break;
+        }
+    } while ( !role_flag );
+    p = ex;
+    e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
+    sleep(500);
+}
+bool f_Game = true;
+void endGame()
+{
+    p->setState(0,0);
+    e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
+    sleep(800);
+    e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
+    sleep(900);
+    CLS_M
+    e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
+    sleep(1000);
+    e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
+    sleep(1500);
+    f_Game = false;
+}
 bool isEscape()
 {
     // 逃跑
-    cout << "你嘗試逃離" << m->getRoleName() << "的追擊" << endl;
-    if (random(1, 50 - p->getState()[SPD]) < random(1, 50 - m->getState()[SPD]))
+    CLS_M
+    cout << "\n你嘗試逃離" << m->getRoleName() << "的追擊\n";
+    if (random(1, 50) - p->getState()[SPD] < random(1, 50) - m->getState()[SPD])
     {
-        cout << "你成功逃離了" << m->getRoleName() << "的追擊";
+        cout << "\n你成功逃離了 " << m->getRoleName() << " 的追擊\n";
+        sleep(500);
         return true;
     }
-    cout << "敵方的速度太快了，你沒有逃離 " << m->getRoleName() << "的追擊";
+    cout << "\n敵方的速度太快了，你沒有逃離 " << m->getRoleName() << " 的追擊\n"
+         << "受到 " << p->onHit(m->getState()[ATK]) << " 點傷害\n";
+    sleep(500);
     return false;
 }
 void showAttack()
 {
+    e.isFight(true);
     // 怪物先手判斷
     if (m->getState()[SPD] > p->getState()[SPD])
     {
@@ -91,7 +157,7 @@ void showAttack()
         cout << m->getRoleName() << "偷襲成功，你受到 " << p->onHit( m->getState()[ATK], isDEF ) << " 點傷害\n";
         showPlayerState();
     }
-    if (p->getState()[1] <= 0) return;
+    if (p->getState()[HP] <= 0) return;
 
     // 戰鬥
     bool ft_flag = true;
@@ -103,7 +169,7 @@ void showAttack()
         showPlayerState();
         cout<<"1.攻擊 2.防禦 3.逃跑 4.查看數值"<<endl;
         cin>>opt;
-        reChoose(opt);
+        reChoose(opt, 1, 4);
         switch (opt)
         {
         case 1:
@@ -137,23 +203,19 @@ void showAttack()
 
         case 4:
             CLS_M
-            cout<<"[ 玩家狀態 ]"<<endl;
+            cout<<"\t[ 玩家狀態 ]"<<endl;
             showPlayerState();
             cout<<endl;
-            cout<<"[ 怪物狀態 ]"<<endl;
+            cout<<"\t[ 怪物狀態 ]"<<endl;
             showMonsterState();
             STOP_M
             break;
-
-        default:
-            cout<<"輸入錯誤，請重新輸入行動。\n1.攻擊  2.防禦  3.逃跑 4.查看數值"<<endl;
-            cin>>opt;
-            reChoose(opt, 1, 4);
         }
         sleep(600);
-    } while(ft_flag && m->getState()[1] > 0 && p->getState()[1] > 0);
+    } while(ft_flag && m->getState()[HP] > 0 && p->getState()[HP] > 0);
 
-    if (p->getState()[1] > 0)
+    if (!ft_flag) return;
+    if (p->getState()[HP] > 0)
     {
         p->setMoney(p->getMoney() + m->getMoney());
 
@@ -166,7 +228,6 @@ void showAttack()
         cout << "\n==========< - >==========\n"
              << "玩家敗給了" << m->getRoleName()
              << "\n裝備毀損 " << p->getArmor()->getName()
-            //  << "\n目前剩下 $" << p->getMoney()
              << "\n==========<+##+>==========\n";
 
         p->setArmor( arm_drop.makeArmor(0, "") );
@@ -176,7 +237,6 @@ void showAttack()
 
 
 /* 程式主體 */
-bool f_Game = true;
 int main()
 {
     #ifdef _WIN32
@@ -185,14 +245,8 @@ int main()
 
     CLS_M
     int debuff = 0;
-    int role_opt = 0;
 
-    e.displayText("請選擇職業:\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
-    cin >> role_opt;
-    reChoose(role_opt);
-    p = makeRole(role_opt);
-
-    e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
+    creatCharacter();
 
     // 裝備物件, 是否扣錢
     p->setWeapon( wep_drop.makeWeapon(p->getRoleType(), "銳利刺匕"), false );
@@ -200,11 +254,9 @@ int main()
     e.upPtr(p);
 
 
-    // showLoadingAnimation(30);
-    // sleep(20);
-    // cin.clear();
-    // cin.ignore(INT_MAX,'\n');
-    // CLS_M STOP_M
+    showLoadingAnimation(25);
+    sleep(20);
+    STOP_M
 
     /* 測試角色死亡事件 */
     // p->setState(-1,0);
@@ -218,14 +270,26 @@ int main()
         e.upPtr(p, m);
         switch(e.whichEvent())
         {
+            case EX:
+                int opt;
+                cout << "(0) 練習 (1) 普通王 (2) 歷戰王\n請選擇難度: ";
+                cin >> opt;
+                reChoose(opt, 0, 2);
+                m = makeRole(0, opt == 2? (opt == 1? "史萊姆王" : "歷戰 獨眼巨人") : "練習用稻草人");
+                showAttack();
+                break;
             case G_1:
                 debuff = -3;
+                e.isLeave(true);
                 break;
             case G_2:
                 runEvnG2();
                 break;
             case G_3:
                 runEvnG3();
+                break;
+            case G_4:
+                e.isLeave(true);
                 break;
             case S_2:
                 runEvnS2();
@@ -238,15 +302,15 @@ int main()
                 if (debuff >= 0)
                 {
                     // 依最大血量 補20%血量
-                    int health = p->getState()[0];
+                    int health = p->getState()[MAX_HP];
                     p->isRecovery( (health / 10) * 2 );
                     e.displayText( RE, 1, 3 );
                 } else {
                     // 依 debuff 狀態 扣當前血量
-                    int health = p->getState()[1];
+                    int health = p->getState()[HP];
                     p->isRecovery( (health / 10) * debuff );
                     debuff = 0;
-                    if (p->getState()[1] > 0)
+                    if (p->getState()[HP] > 0)
                         showPlayerState();
                     else endGame();
                     sleep(1000);
@@ -279,7 +343,7 @@ void runEvnG2()
 
         if (rd < 7 && rd&1) // 1 3 5
         {
-            m = makeRole(0, mon_list[random(1, 3)]);
+            m = makeRole(0, mon_list[random(1, mon_list.size()-1)]);
             e.displayText("從冒險者的遺物中冒出了一個黑影，那是....\n");
             sleep(500);
 
@@ -330,32 +394,16 @@ void runEvnG2()
 
 void runEvnG3()
 {
-    m = makeRole(0, "史萊姆");
     // m = makeRole(0, "歷戰 獨眼巨人");
+    // 20% 機率出現史萊姆王
+    m = makeRole(0, random(0, 100)<=20? "史萊姆王" : "史萊姆");
 
 
-    char temp;
-    while(e.isFight())
-    {
-        cout << "\n==========< ⊙ >=========="
-             << "\n遭遇 [" << m->getRoleName() << "]"
-             << ", 怪物血量: " << m->getState()[1] << " / " << m->getState()[0]
-             << "\n==========< - >==========\n";
-        cout << "是否戰鬥? (y/n): ";
-        cin  >> temp;
-
-        if (temp == 'y' || temp == 'Y')
-        {
-            showAttack();
-            break;
-        } else {
-            cout<<"\n==========< ⊕ >==========\n";
-            e.displayText("\t逃跑成功");
-            cout<<"\n==========<-##->==========\n";
-            break;
-        }
-        sleep(1550);
-    }
+    cout << "\n==========< ⊙ >=========="
+         << "\n遭遇 [" << m->getRoleName() << "]"
+         << "\n==========< - >==========\n";
+    showAttack();
+    sleep(1550);
 }
 
 void runEvnS2()
@@ -462,7 +510,7 @@ void runEvnR2()
     }
 
     // 依最大血量 補80%血量
-    int health = p->getState()[0];
+    int health = p->getState()[MAX_HP];
     p->isRecovery( (health / 10) * 8 );
 
     e.displayText( RE, 2);
@@ -486,18 +534,4 @@ void runEvnR2()
         }
     }
     sleep(1500);
-}
-
-void endGame()
-{
-    e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
-    sleep(800);
-    e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
-    sleep(900);
-    CLS_M
-    e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
-    sleep(1000);
-    e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
-    sleep(1500);
-    f_Game = false;
 }

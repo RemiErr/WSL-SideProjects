@@ -98,7 +98,7 @@ public:
 
     int onHit(double dmg, bool def_flag = false)
     {
-        dmg -= (2 * dmg) / (dmg + DEF) + def_flag? DEF / 5 : 0 + 0.5; // 四捨五入
+        dmg -= (2 * dmg) / (dmg + DEF) + def_flag? DEF / 10 : 0 + 0.5; // 四捨五入
         if (dmg <= 0) dmg = 1;
 
         Health -= dmg;
