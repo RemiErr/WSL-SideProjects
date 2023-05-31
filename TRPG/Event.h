@@ -61,16 +61,13 @@ int random(int min, int max) {
 
 void reChoose(int &opt, int min = 1, int max = 3)
 {
-    while (opt < min || max < opt)
+    // 等於 !cin.fail()
+    while (!cin || opt < min || max < opt)
     {
-        if (!cin) // 等於 !cin.fail()
-        {
-            cin.clear();
-            cin.ignore(INT_MAX, '\n');
-        } else {
-            cout << "請重新輸入數字: ";
-            cin >> opt;
-        }
+        cin.clear();
+        cin.ignore(INT_MAX, '\n');
+        cout << "請重新輸入數字: ";
+        cin >> opt;
     }
 }
 
@@ -316,12 +313,12 @@ public:
         if (Leave)
         {   // 倒下事件
             EvnSignal = R_1;
-        } else if (Fight && p->getState()[HP] <= 0)
+        } else if (Fight && p->getState()[eHP] <= 0)
             EvnSignal = R_2; // 被打倒
         else
         {
             EvnSignal = 0;
-            if (p->getState()[HP] <= 0) return false;
+            if (p->getState()[eHP] <= 0) return false;
         }
         return true;
     }

@@ -12,7 +12,7 @@ using namespace std;
 #endif
 
 // 角色數值標籤
-enum { MAX_HP, HP, ATK, DEF, SPD };
+enum { eMAX_HP, eHP, eATK, eDEF, eSPD, eMONEY };
 
 // 基礎角色資料
 class Character
@@ -36,7 +36,7 @@ public:
     Character(string role = "", int health = 0, int atk = 0, int def = 0, int spd = 0, int money = 0)
     {
         setRole(role);
-        setState(health, health, atk, def);
+        setState(health, health, atk, def, spd);
         setMoney(money);
         weapon = new Weapon();
         armor = new Armor();
@@ -75,7 +75,7 @@ public:
     void setWeapon(Weapon *wep, bool m_flag = true)
     {
         if (m_flag) Money -= wep->getPrice();
-        ATK += wep->getATK();
+        // ATK += wep->getATK();
         weapon = wep;
     }
 
@@ -83,22 +83,22 @@ public:
     void setArmor(Armor *arm, bool m_flag = true)
     {
         if (m_flag) Money -= arm->getPrice();
-        Health_Max += arm->getHealth();
-        DEF += arm->getDEF();
+        // Health_Max += arm->getHealth();
+        // DEF += arm->getDEF();
         armor = arm;
     }
 
     // 檢查是否死亡
-    bool checkDeath()
-    {
-        if (this != nullptr && this->getState()[1]>0)
-            return false;
-        return true;
-    }
+    // bool checkDeath()
+    // {
+    //     if (this != nullptr && this->getState()[1]>0)
+    //         return false;
+    //     return true;
+    // }
 
     int onHit(double dmg, bool def_flag = false)
     {
-        dmg -= (2 * dmg) / (dmg + DEF) + def_flag? DEF / 10 : 0 + 0.5; // 四捨五入
+        dmg -= DEF / (10 * dmg + DEF) + (def_flag? DEF : 0) + 0.5; // 四捨五入
         if (dmg <= 0) dmg = 1;
 
         Health -= dmg;
@@ -110,8 +110,8 @@ public:
     void isRecovery(int recovery)
     {
         Health += recovery;
-        if (Health > Health_Max)
-            Health = Health_Max;
+        if (Health > Health_Max + armor->getHealth())
+            Health = Health_Max + armor->getHealth();
         if (Health < 0) Health = 0;
     }
 
@@ -120,7 +120,16 @@ public:
     // 職業(怪物) 名稱
     string getRoleName() { return Role_Name; }
     // 最大血量 當前血量 攻擊力 防禦力 速度
-    vector<int> getState() { return { Health_Max, Health, ATK, DEF, SPD }; }
+    vector<int> getState()
+    {
+        return {
+            Health_Max + armor->getHealth(),
+            Health,
+            ATK + weapon->getATK(),
+            DEF + armor->getDEF(),
+            SPD
+        };
+    }
     // 給 我 錢
     int getMoney() { return Money; }
     // 取得武器物件
@@ -141,7 +150,7 @@ public:
         Health = Health_Max;
         ATK = 50;
         DEF = 20;
-        SPD = 30;
+        SPD = 35;
         Money = 500;
         Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }
@@ -159,7 +168,7 @@ public:
         Health = Health_Max;
         ATK = 15;
         DEF = 60;
-        SPD = 30;
+        SPD = 20;
         Money = 500;
         Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }
@@ -177,7 +186,7 @@ public:
         Health = Health_Max;
         ATK = 100;
         DEF = 10;
-        SPD = 30;
+        SPD = 50;
         Money = 500;
         Character(Role_Name, Health, ATK, DEF, SPD, Money);
     }

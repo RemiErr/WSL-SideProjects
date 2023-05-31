@@ -50,22 +50,24 @@ void runEvnR2();
 /* 動作函式 */
 void showPlayerState()
 {
-    cout << "\n==========< state >=========="
-         << "\n血量: "   << p->getState()[HP] << " / " << p->getState()[MAX_HP]
-         << "\n攻擊力: " << p->getState()[ATK] << " 防禦力: " << p->getState()[DEF]
-         << "\n速度: " << p->getState()[SPD] << " 金幣: "   << p->getMoney()
-         << "\n==========<---+--->=========="
+    cout << "==========<  ※  >=========="
+         << "\n血量: "   << p->getState()[eHP] << " / " << p->getState()[eMAX_HP]
+         << "\n攻擊力: " << p->getState()[eATK] << " 防禦力: " << p->getState()[eDEF]
+         << "\n速度: " << p->getState()[eSPD] << " 金幣: "   << p->getMoney()
+         << "\n==========<--+-->=========="
          << "\n職業: "   << p->getRoleName()
          << "\n武器: " << p->getWeapon()->getName()
          << "\n防具: " << p->getArmor()->getName()
-         << "\n==========<---o--->==========\n";
+         << "\n==========<--o-->==========\n";
 }
 void showMonsterState()
 {
-    cout << "==========< ⊙ >==========\n"
-             << "怪物: " << m->getRoleName()
-             << ", 怪物血量: " << m->getState()[HP] << " / " << m->getState()[MAX_HP]
-             << "\n==========< - >==========\n";
+    cout << "==========<  ⊙  >=========="
+         << "\n怪物: " << m->getRoleName()
+         << "\n血量: " << m->getState()[eHP] << " / " << m->getState()[eMAX_HP]
+         << "\n攻擊力: " << m->getState()[eATK] << " 防禦力: " << m->getState()[eDEF]
+         << "\n速度: " << m->getState()[eSPD]
+         << "\n==========<--o-->==========\n";
 }
 void creatCharacter()
 {   // 建立角色資料
@@ -83,20 +85,20 @@ void creatCharacter()
         {
             case 0:
                 CLS_M
-                cout << "==========< state >==========";
+                cout << "==========<  ※  >==========";
                 for (int i=1; i <= 3; i++)
                 {
                     ex = makeRole(i);
                     cout << "\n職業: "   << ex->getRoleName()
-                        << "\n血量: "   << ex->getState()[HP] << " / " << ex->getState()[MAX_HP]
-                        << "\n攻擊力: " << ex->getState()[ATK]
-                        << "\n防禦力: " << ex->getState()[DEF]
-                        << "\n速度: " << ex->getState()[SPD]
+                        << "\n血量: "   << ex->getState()[eHP] << " / " << ex->getState()[eMAX_HP]
+                        << "\n攻擊力: " << ex->getState()[eATK]
+                        << "\n防禦力: " << ex->getState()[eDEF]
+                        << "\n速度: " << ex->getState()[eSPD]
                         << "\n初始金幣: "   << ex->getMoney();
-                    if (i < 3) cout << "\n==========<---+--->==========";
+                    if (i < 3) cout << "\n==========<--+-->==========";
                     delete ex;
                 }
-                cout << "\n==========<---o--->==========\n";
+                cout << "\n==========<--o-->==========\n";
                 STOP_M
                 break;
             case 1:
@@ -121,12 +123,12 @@ void endGame()
     p->setState(0,0);
     e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
     sleep(800);
-    e.displayText("而你的意識也越來越模糊，直到...\n......\r.........\n", 150);
-    sleep(900);
-    CLS_M
-    e.displayText("\t「 好像... ... ...\n\t\t有點...\n\t\t......", 200);
+    e.displayText("而你的意識也越來越模糊，直到...\n......\n...............\n", 150);
     sleep(1000);
-    e.displayText("\r\t\t\t.........\n\n\t\t\t冷...... 」\n", 300);
+    CLS_M
+    e.displayText("\t「 好... 像... ...\n\t\t有點...\n\t.........", 200);
+    sleep(1200);
+    e.displayText("\t..........\n\n\t\t.....\t冷...... 」\n", 300);
     sleep(1500);
     f_Game = false;
 }
@@ -135,87 +137,106 @@ bool isEscape()
     // 逃跑
     CLS_M
     cout << "\n你嘗試逃離" << m->getRoleName() << "的追擊\n";
-    if (random(1, 50) - p->getState()[SPD] < random(1, 50) - m->getState()[SPD])
+    if (random(1, 50) - p->getState()[eSPD] < random(1, 50) - m->getState()[eSPD])
     {
         cout << "\n你成功逃離了 " << m->getRoleName() << " 的追擊\n";
         sleep(500);
         return true;
     }
     cout << "\n敵方的速度太快了，你沒有逃離 " << m->getRoleName() << " 的追擊\n"
-         << "受到 " << p->onHit(m->getState()[ATK]) << " 點傷害\n";
+         << "受到 " << p->onHit(m->getState()[eATK]) << " 點傷害\n";
     sleep(500);
     return false;
 }
 void showAttack()
 {
+    CLS_M
     e.isFight(true);
     // 怪物先手判斷
-    if (m->getState()[SPD] > p->getState()[SPD])
+    if (m->getState()[eSPD] > p->getState()[eSPD])
     {
         int rd = random(1, 10);
         bool isDEF = (rd + random(0, 1))&1? true : false; // &1 以位元做 and，用來判斷是否奇數
-        cout << m->getRoleName() << "偷襲成功，你受到 " << p->onHit( m->getState()[ATK], isDEF ) << " 點傷害\n";
+        cout << m->getRoleName() << "偷襲成功，你受到 " << p->onHit( m->getState()[eATK], isDEF ) << " 點傷害\n\n";
         showPlayerState();
+        sleep(2500);
     }
-    if (p->getState()[HP] <= 0) return;
 
     // 戰鬥
     bool ft_flag = true;
-    do {
+    while(ft_flag && m->getState()[eHP] > 0 && p->getState()[eHP] > 0)
+    {
         int opt, dmg;
 
         CLS_M
         showMonsterState();
         showPlayerState();
-        cout<<"1.攻擊 2.防禦 3.逃跑 4.查看數值"<<endl;
+        cout<<"1.攻擊 2.防禦 3.祈禱 4.逃跑"<<endl;
         cin>>opt;
         reChoose(opt, 1, 4);
         switch (opt)
         {
         case 1:
-            CLS_M
-            dmg = m->onHit( p->getState()[ATK], random(0, 100) <= 30 ); // 怪物 30% 機會防禦成功
-            showMonsterState();
-            showPlayerState();
-            cout << "你朝"<< m->getRoleName() << "發動了攻擊，";
-            cout << "造成 " << dmg << " 點傷害\n";
-                
-            cout << m->getRoleName() << "朝你發動了攻擊，";
-            dmg = p->onHit( m->getState()[ATK] );
-            cout << "你受到 "<< dmg << " 點傷害     \n";
-            sleep(1000);
-            break;
-
+            {
+                CLS_M
+                bool m_def = random(0, 100) <= 30;
+                dmg = m->onHit( p->getState()[eATK], m_def ); // 怪物 30% 機會防禦成功
+                showMonsterState();
+                showPlayerState();
+                if (!m_def)
+                {
+                    cout << "你對"<< m->getRoleName() << "發動了攻擊，"
+                        << "造成 " << dmg << " 點傷害\n";
+                } else {
+                    cout << m->getRoleName() << "架起防禦姿勢，"
+                        << "你造成 " << dmg << " 點傷害\n";
+                }
+                    
+                cout << m->getRoleName() << "向你發動了攻擊，";
+                dmg = p->onHit( m->getState()[eATK] );
+                cout << "受到 "<< dmg << " 點傷害     \n";
+                sleep(1200);
+                break;
+            }
         case 2:
-            CLS_M
-            dmg = p->onHit( m->getState()[ATK], true );
-            showMonsterState();
-            showPlayerState();
-            cout << "你開始防禦。\n" << m->getRoleName() << "朝你發動了攻擊，";
-            cout << "你受到 "<< dmg << " 點傷害     \n";
-            sleep(1000);
-            break;
-
+            {
+                CLS_M
+                dmg = p->onHit( m->getState()[eATK], true );
+                showMonsterState();
+                showPlayerState();
+                cout << "你架好了防禦姿勢。\n" << m->getRoleName() << "向你發動了攻擊，";
+                cout << "受到 "<< dmg << " 點傷害     \n";
+                sleep(1200);
+                break;
+            }
         case 3:
+            {
+                CLS_M
+                p->isRecovery( random(p->getState()[eHP] * 0.1, p->getState()[eHP] * 0.3) );
+                e.displayText("聖光灑落在你身上，恢復了些微血量。\n\n", 2);
+                sleep(500);
+                if (random(1, 100) <= 35)
+                    e.displayText( m->getRoleName() +
+                                "趁機偷襲，你受到 " +
+                                to_string(p->onHit(m->getState()[eATK])) +
+                                " 點傷害\n\n" );
+                sleep(200);
+                cout<<"\t[ 玩家狀態 ]"<<endl;
+                showPlayerState();
+
+                STOP_M
+                break;
+            }
+        case 4:
             CLS_M
             if (isEscape()) ft_flag = false;
             break;
-
-        case 4:
-            CLS_M
-            cout<<"\t[ 玩家狀態 ]"<<endl;
-            showPlayerState();
-            cout<<endl;
-            cout<<"\t[ 怪物狀態 ]"<<endl;
-            showMonsterState();
-            STOP_M
-            break;
         }
         sleep(600);
-    } while(ft_flag && m->getState()[HP] > 0 && p->getState()[HP] > 0);
+    }
 
     if (!ft_flag) return;
-    if (p->getState()[HP] > 0)
+    if (p->getState()[eHP] > 0)
     {
         p->setMoney(p->getMoney() + m->getMoney());
 
@@ -226,9 +247,10 @@ void showAttack()
              << "\n==========<+##+>==========\n";
     } else {
         cout << "\n==========< - >==========\n"
-             << "玩家敗給了" << m->getRoleName()
-             << "\n裝備毀損 " << p->getArmor()->getName()
-             << "\n==========<+##+>==========\n";
+             << "玩家敗給了" << m->getRoleName();
+        if (p->getArmor()->getName() != "")
+            cout << "\n裝備毀損 " << p->getArmor()->getName();
+        cout << "\n==========<+##+>==========\n";
 
         p->setArmor( arm_drop.makeArmor(0, "") );
     }
@@ -251,6 +273,7 @@ int main()
     // 裝備物件, 是否扣錢
     p->setWeapon( wep_drop.makeWeapon(p->getRoleType(), "銳利刺匕"), false );
     p->setArmor( arm_drop.makeArmor(p->getRoleType(), "鐵製背心"), false );
+    p->isRecovery( p->getArmor()->getHealth() );
     e.upPtr(p);
 
 
@@ -258,10 +281,6 @@ int main()
     sleep(20);
     STOP_M
 
-    /* 測試角色死亡事件 */
-    // p->setState(-1,0);
-    // p->setMoney(0);
-    // e.Desert_alive();
 
     // 設定例外事件，跳過該回合
     e.setExcept( {R_1, R_2} );
@@ -271,13 +290,16 @@ int main()
         switch(e.whichEvent())
         {
             case EX:
+            {
                 int opt;
+                string mon_str[3] = {"練習用稻草人", "史萊姆王", "歷戰 獨眼巨人"};
                 cout << "(0) 練習 (1) 普通王 (2) 歷戰王\n請選擇難度: ";
                 cin >> opt;
                 reChoose(opt, 0, 2);
-                m = makeRole(0, opt == 2? (opt == 1? "史萊姆王" : "歷戰 獨眼巨人") : "練習用稻草人");
+                m = makeRole(0, mon_str[opt]);
                 showAttack();
                 break;
+            }
             case G_1:
                 debuff = -3;
                 e.isLeave(true);
@@ -302,15 +324,15 @@ int main()
                 if (debuff >= 0)
                 {
                     // 依最大血量 補20%血量
-                    int health = p->getState()[MAX_HP];
+                    int health = p->getState()[eMAX_HP];
                     p->isRecovery( (health / 10) * 2 );
                     e.displayText( RE, 1, 3 );
                 } else {
                     // 依 debuff 狀態 扣當前血量
-                    int health = p->getState()[HP];
+                    int health = p->getState()[eHP];
                     p->isRecovery( (health / 10) * debuff );
                     debuff = 0;
-                    if (p->getState()[HP] > 0)
+                    if (p->getState()[eHP] > 0)
                         showPlayerState();
                     else endGame();
                     sleep(1000);
@@ -490,10 +512,13 @@ void runEvnS4()
 
     showAttack();
     CLS_M
-    cout << "你撿起了哥布林死前握在手上的武器 " << m_wep->getName() << "\n";
-    p->setWeapon( m_wep, false );
-    showPlayerState();
-    sleep(1500);
+    if (m->getState()[eHP] <= 0)
+    {
+        cout << "你撿起了哥布林死前握在手上的武器 " << m_wep->getName() << "\n";
+        p->setWeapon( m_wep, false );
+        showPlayerState();
+        sleep(1000);
+    }
 }
 
 void runEvnR2()
@@ -510,7 +535,7 @@ void runEvnR2()
     }
 
     // 依最大血量 補80%血量
-    int health = p->getState()[MAX_HP];
+    int health = p->getState()[eMAX_HP];
     p->isRecovery( (health / 10) * 8 );
 
     e.displayText( RE, 2);
