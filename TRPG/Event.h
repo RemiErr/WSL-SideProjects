@@ -12,7 +12,10 @@
 #define sleep(x) usleep(x*1000.0)
 #define Sleep(x) usleep(x*1000.0)
 #define CLS_M system("clear");
-#define STOP_M printf("Press Enter key to continue..."); fgetc(stdin);
+#define STOP_M cin.clear();\
+               cin.ignore(INT_MAX, '\n');\
+               printf("Press Enter key to continue...\n");\
+               fgetc(stdin);
 #define INT_MAX __INT_MAX__
 #endif
 

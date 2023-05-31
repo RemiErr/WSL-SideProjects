@@ -11,6 +11,9 @@ using namespace std;
 #define cin std::cin
 #endif
 
+// 角色數值標籤
+enum { MAX_HP, HP, ATK, DEF, SPD };
+
 // 基礎角色資料
 class Character
 {
@@ -93,10 +96,10 @@ public:
         return true;
     }
 
-    int onHit(int dmg)
+    int onHit(int dmg, bool def_flag = false)
     {
-        dmg = int((dmg * dmg) / (dmg/2 + DEF) + 0.5); // 四捨五入
-        Health -= dmg;
+        dmg = dmg * (1 - DEF / (def_flag? 60 : 30));
+        Health -= (dmg > 0? dmg : 1);
         if (Health < 0) Health = 0;
         return dmg;
     }
@@ -109,11 +112,17 @@ public:
         if (Health < 0) Health = 0;
     }
 
+    // 職業編號
     int getRoleType() { return Role_Type; }
+    // 職業(怪物) 名稱
     string getRoleName() { return Role_Name; }
-    vector<int> getState() { return { Health_Max, Health, ATK, DEF }; }
+    // 最大血量 當前血量 攻擊力 防禦力 速度
+    vector<int> getState() { return { Health_Max, Health, ATK, DEF, SPD }; }
+    // 給 我 錢
     int getMoney() { return Money; }
+    // 取得武器物件
     Weapon *getWeapon() { return weapon; }
+    // 取得防具物件
     Armor *getArmor() { return armor; }
 };
 

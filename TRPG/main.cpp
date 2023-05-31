@@ -38,6 +38,7 @@ vector<string> arm_drop_names = [](){
     return temp;
 }();
 
+
 /* 事件前置宣告 */
 void runEvnG2();
 void runEvnG3();
@@ -46,11 +47,13 @@ void runEvnS4();
 void runEvnR2();
 void endGame();
 
+
+/* 動作函式 */
 void showPlayerState()
 {
     cout << "\n==========< state >==========\n"
-         << "血量: "   << p->getState()[1] << " / " << p->getState()[0] << endl
-         << "攻擊力: " << p->getState()[2] << " 防禦力: " << p->getState()[3] << endl
+         << "血量: "   << p->getState()[HP] << " / " << p->getState()[MAX_HP] << endl
+         << "攻擊力: " << p->getState()[ATK] << " 防禦力: " << p->getState()[DEF] << endl
          << "金幣: "   << p->getMoney()
          << "\n==========<---+--->=========="
          << "\n職業: "   << p->getRoleName()
@@ -58,12 +61,37 @@ void showPlayerState()
          << "\n防具: " << p->getArmor()->getName()
          << "\n==========<---o--->==========\n";
 }
+
+bool isEscape()
+{
+    // 逃跑
+    cout << "你嘗試逃離" << m->getRoleName() << "的追擊" << endl;
+    if (random(1, 50 - p->getState()[SPD]) < random(1, 50 - m->getState()[SPD]))
+    {
+        cout << "你成功逃離了" << m->getRoleName() << "的追擊";
+        return true;
+    }
+    cout << "敵方的速度太快了，你沒有逃離 " << m->getRoleName() << "的追擊";
+    return false;
+}
 void showAttack()
 {
+    // 怪物先手判斷
+    if (m->getState()[SPD] > p->getState()[SPD])
+    {
+        int rd = random(0, 100);
+        bool isDEF = random(rd, rd + random(0, 50))&1 && rd&1? true : false; // &1 以位元做 and，用來判斷是否奇數
+        cout << m->getRoleName() << "偷襲成功，你受到 " << p->onHit( m->getState()[ATK] ) << " 點傷害\n";
+        showPlayerState();
+    }
+    if (p->getState()[1] <= 0) return;
+
     // 戰鬥
+    bool ft_flag = true;
     do {
-        int m_onhit = m->onHit( p->getState()[2] );
-        int p_onhit = p->onHit( m->getState()[2] );
+        int opt, dmg;
+        int m_onhit = m->onHit( p->getState()[ATK] );
+        int p_onhit = p->onHit( m->getState()[ATK] );
 
         CLS_M
         cout << "==========< ⊙ >==========\n"
@@ -72,11 +100,69 @@ void showAttack()
              << "\n==========< - >==========\n";
         showPlayerState();
         sleep(100);
+        cout<<"1.攻擊 2.防禦 3.逃跑 4.查看數值"<<endl;
+        cin>>opt;
+        reChoose(opt);
+        switch (opt)
+        {
+            /* bug: dmg顯示異常 */
+        case 1:
+            dmg = p->getState()[ATK];
+            cout << "你朝"<< m->getRoleName() << "發動了攻擊。" << endl ;
+            dmg = m->onHit( dmg, (random(0, 1) + m->getState()[DEF]) & 1 );
+            cout << m->getRoleName() << "受到了 " << p->getState()[ATK] << " 點傷害\n";
+            cout << m->getRoleName() << "目前的血量："
+                    << m->getState()[HP] << "/" << m->getState()[MAX_HP] << endl;
+                
+            cout << m->getRoleName() << "朝你發動了攻擊。" << endl ;
+            dmg = p->onHit( m->getState()[ATK] );
+            cout << m->getRoleName() <<"對你造成了 "<< m->getState()[ATK] << " 點傷害\n";
+            showPlayerState();
 
-        cout << "玩家攻擊怪物，造成 " << m_onhit << " 點傷害\n";
-        cout << "玩家受到攻擊，總共 " << p_onhit << " 點傷害\n";
+            // if(m->getState()[HP] <= 0)
+            //     cout << m->getRoleName() << " 被你打倒了。" << endl;
+
+            STOP_M
+            break;
+
+        case 2:
+            cout << "你開始防禦。\n" << m->getRoleName() << "朝你發動了攻擊。" << endl;
+            dmg = p->onHit( m->getState()[ATK] );
+            cout << m->getRoleName() <<"對你造成了 "<< dmg << " 點傷害\n";
+            showPlayerState();
+
+            // if(p->getState()[HP] <= 0)
+            //     cout << "你被" << m->getRoleName() << "打倒了......" << endl;
+
+            STOP_M
+            break;
+
+        case 3:
+            if (isEscape()) ft_flag = false;
+            CLS_M
+            break;
+
+        case 4:
+            cout<<"[ 玩家狀態 ]"<<endl;
+            showPlayerState();
+            cout<<endl;
+            cout<<"[ 怪物狀態 ]"<<endl;
+            cout << "==========< ⊙ >==========\n"
+                    << "怪物: " << m->getRoleName()
+                    << ", 怪物血量: " << m->getState()[1] << " / " << m->getState()[0]
+                    << "\n==========< - >==========\n";
+            CLS_M STOP_M
+            break;
+
+        default:
+            cout<<"輸入錯誤，請重新輸入行動。\n1.攻擊  2.防禦  3.逃跑 4.查看數值"<<endl;
+            cin>>opt;
+            reChoose(opt, 1, 4);
+        }
+        // cout << "玩家攻擊怪物，造成 " << m_onhit << " 點傷害\n";
+        // cout << "玩家受到攻擊，總共 " << p_onhit << " 點傷害\n";
         sleep(600);
-    } while(m->getState()[1] > 0 && p->getState()[1] > 0);
+    } while(ft_flag && m->getState()[1] > 0 && p->getState()[1] > 0);
 
     if (p->getState()[1] > 0)
     {
@@ -125,11 +211,11 @@ int main()
     e.upPtr(p);
 
 
-    showLoadingAnimation(30);
-    sleep(20);
-    cin.clear();
-    cin.ignore(INT_MAX,'\n');
-    CLS_M STOP_M
+    // showLoadingAnimation(30);
+    // sleep(20);
+    // cin.clear();
+    // cin.ignore(INT_MAX,'\n');
+    // CLS_M STOP_M
 
     /* 測試角色死亡事件 */
     // p->setState(-1,0);
