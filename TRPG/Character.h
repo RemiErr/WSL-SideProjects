@@ -98,9 +98,13 @@ public:
 
     int onHit(int dmg, bool def_flag = false)
     {
-        dmg = dmg * (1 - DEF / (def_flag? 60 : 30));
-        Health -= (dmg > 0? dmg : 1);
+        double def = DEF / (DEF * (def_flag? 0.2 : 1) + 100);
+        dmg *= (1 - def);
+        if (dmg < 0) dmg = 1;
+
+        Health -= dmg;
         if (Health < 0) Health = 0;
+
         return dmg;
     }
 
