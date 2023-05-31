@@ -96,11 +96,10 @@ public:
         return true;
     }
 
-    int onHit(int dmg, bool def_flag = false)
+    int onHit(double dmg, bool def_flag = false)
     {
-        double def = DEF / (DEF * (def_flag? 0.2 : 1) + 100);
-        dmg *= (1 - def);
-        if (dmg < 0) dmg = 1;
+        dmg -= (2 * dmg) / (dmg + DEF) + def_flag? DEF / 5 : 0 + 0.5; // 四捨五入
+        if (dmg <= 0) dmg = 1;
 
         Health -= dmg;
         if (Health < 0) Health = 0;

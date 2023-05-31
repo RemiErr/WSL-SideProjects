@@ -108,7 +108,7 @@ void showAttack()
         {
         case 1:
             CLS_M
-            dmg = m->onHit( p->getState()[ATK], (random(0, 1) + m->getState()[DEF]) & 1 );
+            dmg = m->onHit( p->getState()[ATK], random(0, 100) <= 30 ); // 怪物 30% 機會防禦成功
             showMonsterState();
             showPlayerState();
             cout << "你朝"<< m->getRoleName() << "發動了攻擊，";
