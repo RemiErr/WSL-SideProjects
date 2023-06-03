@@ -16,12 +16,12 @@
                cin.ignore(INT_MAX, '\n');\
                printf("Press Enter key to continue...\n");\
                fgetc(stdin);
-#define INT_MAX __INT_MAX__
 #endif
 
 #include <set>
 #include <random>
 #include <cstdlib>
+#include <limits.h>
 #include "Character.h"
 #include "FileManager.h"
 
@@ -162,20 +162,6 @@ protected:
         Ds_go.erase( Ds_go.begin() );
 
         displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
-
-        // 訊號旗標觸發設定
-        // switch ( rd )
-        // {
-        // case G_1:
-        //     Leave = true;
-        //     break;
-        // case G_3:
-        //     Fight = true;
-        //     break;
-        // case G_4:
-        //     Leave = true;
-        //     break;
-        // }
         EvnSignal = rd;
     }
 
@@ -193,7 +179,7 @@ protected:
             p->setState(0,0,0,0);
             Leave = false;
             Fight = false;
-            EvnSignal = 0;
+            EvnSignal = -1;
             Count = 0;
         } else {
             if (Ds_stay.empty()) Desert_rand(Ds_stay, S_1, S_4);
@@ -211,7 +197,7 @@ public:
     Event()
     {
         Count = 0;
-        EvnSignal = 0;
+        EvnSignal = -1;
         Leave = false;
         Fight = false;
         FileManager file("event/Events.csv");
@@ -220,7 +206,7 @@ public:
     Event(Character *p, Character *m)
     {
         Count = 0;
-        EvnSignal = 0;
+        EvnSignal = -1;
         Leave = false;
         Fight = false;
         FileManager file("event/Events.csv");
@@ -317,7 +303,7 @@ public:
             EvnSignal = R_2; // 被打倒
         else
         {
-            EvnSignal = 0;
+            EvnSignal = -1;
             if (p->getState()[eHP] <= 0) return false;
         }
         return true;
@@ -362,7 +348,6 @@ public:
             reChoose(option);
             break;
         }
-        // Desert_alive();
         return true;
     }
 };

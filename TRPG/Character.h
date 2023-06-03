@@ -75,7 +75,6 @@ public:
     void setWeapon(Weapon *wep, bool m_flag = true)
     {
         if (m_flag) Money -= wep->getPrice();
-        // ATK += wep->getATK();
         weapon = wep;
     }
 
@@ -83,22 +82,12 @@ public:
     void setArmor(Armor *arm, bool m_flag = true)
     {
         if (m_flag) Money -= arm->getPrice();
-        // Health_Max += arm->getHealth();
-        // DEF += arm->getDEF();
         armor = arm;
     }
 
-    // 檢查是否死亡
-    // bool checkDeath()
-    // {
-    //     if (this != nullptr && this->getState()[1]>0)
-    //         return false;
-    //     return true;
-    // }
-
     int onHit(double dmg, bool def_flag = false)
     {
-        dmg -= DEF / (10 * dmg + DEF) + (def_flag? DEF : 0) + 0.5; // 四捨五入
+        dmg -= (1 + getState()[eDEF]/100) * (2 * DEF + 3 * armor->getDEF()) / dmg  + (def_flag? DEF : 0) + 0.5; // 四捨五入
         if (dmg <= 0) dmg = 1;
 
         Health -= dmg;

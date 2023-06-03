@@ -114,6 +114,7 @@ void creatCharacter()
         }
     } while ( !role_flag );
     p = ex;
+    e.upPtr(p);
     e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
     sleep(500);
 }
@@ -274,7 +275,7 @@ int main()
     p->setWeapon( wep_drop.makeWeapon(p->getRoleType(), "銳利刺匕"), false );
     p->setArmor( arm_drop.makeArmor(p->getRoleType(), "鐵製背心"), false );
     p->isRecovery( p->getArmor()->getHealth() );
-    e.upPtr(p);
+
 
 
     showLoadingAnimation(25);
@@ -308,6 +309,7 @@ int main()
                 runEvnG2();
                 break;
             case G_3:
+                sleep(1000);
                 runEvnG3();
                 break;
             case G_4:

@@ -50,10 +50,10 @@ public:
         if (!wep[name].empty())
         {
             Name = prev_word[level] + name;
-            ATK = wep[name][0] + level==0? 50:
-                                 level==1? 25 : -25;
+            ATK = wep[name][0] + (level==0? 50:
+                                  level==1? 25 : -25);
             Price = 0;
-            Weapon(name, ATK, Price);
+            Weapon(name, wep[name][0], wep[name][1]);
         }
         else
             cout<<"Error: 未建立物件 - MonsterWeapon\n";
@@ -168,12 +168,5 @@ public:
             break;
         }
     }
-// private:
-//     void updata(string name = "", int atk = NULL, int price = NULL)
-//     {
-//         if (!name.empty()) Name = name;
-//         if (atk != NULL) ATK = atk;
-//         if (price != NULL) Price = price;
-//     }
 };
 #endif
