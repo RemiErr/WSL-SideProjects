@@ -26,6 +26,7 @@ protected:
     int DEF;
     int SPD;
     int Money;
+    int Point;
 
     // 會 new 物件出來，用指標抓取該位址
     Weapon *weapon;
@@ -33,11 +34,12 @@ protected:
 
 
 public:
-    Character(string role = "", int health = 0, int atk = 0, int def = 0, int spd = 0, int money = 0)
+    Character(string role = "", int health = 0, int atk = 0, int def = 0, int spd = 0, int money = 0, int point = 0)
     {
         setRole(role);
         setState(health, health, atk, def, spd);
         setMoney(money);
+        setPoint(point);
         weapon = new Weapon();
         armor = new Armor();
     }
@@ -71,6 +73,12 @@ public:
         if (Money < 0) Money = 0;
     }
 
+    void setPoint(int point)
+    {
+        Point = point;
+        if (Point < 0) Point = 0;
+    }
+
     // 設定角色武器
     void setWeapon(Weapon *wep, bool m_flag = true)
     {
@@ -88,7 +96,7 @@ public:
     int onHit(double dmg, bool def_flag = false)
     {
         dmg -= (1 + getState()[eDEF]/100) * (2 * DEF + 3 * armor->getDEF()) / dmg  + (def_flag? DEF : 0) + 0.5; // 四捨五入
-        if (dmg <= 0) dmg = 1;
+        if (dmg < 0) dmg = 0;
 
         Health -= dmg;
         if (Health < 0) Health = 0;
@@ -121,6 +129,8 @@ public:
     }
     // 給 我 錢
     int getMoney() { return Money; }
+    // 取得剩餘點數
+    int getPoint() { return Point; }
     // 取得武器物件
     Weapon *getWeapon() { return weapon; }
     // 取得防具物件
@@ -141,7 +151,8 @@ public:
         DEF = 20;
         SPD = 35;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, SPD, Money);
+        Point = 10;
+        Character(Role_Name, Health, ATK, DEF, SPD, Money, Point);
     }
     ~Berserker(){}
 };
@@ -159,7 +170,8 @@ public:
         DEF = 60;
         SPD = 20;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, SPD, Money);
+        Point = 10;
+        Character(Role_Name, Health, ATK, DEF, SPD, Money, Point);
     }
     ~Tank(){}
 };
@@ -177,7 +189,8 @@ public:
         DEF = 10;
         SPD = 50;
         Money = 500;
-        Character(Role_Name, Health, ATK, DEF, SPD, Money);
+        Point = 10;
+        Character(Role_Name, Health, ATK, DEF, SPD, Money, Point);
     }
     ~Assassin(){}
 };
@@ -213,7 +226,9 @@ public:
         SPD = monsters[name][3];
         // 掉落金幣
         Money = monsters[name][4];
-        Character(name, Health, ATK, DEF, Money);
+        // 獎勵點數
+        Point = monsters[name][5];
+        Character(name, Health, ATK, DEF, Money, Point);
     }
     ~Monster(){}
 

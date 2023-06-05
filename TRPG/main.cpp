@@ -1,4 +1,4 @@
-#include "Event.h"
+#include "Event2.h"
 
 #ifndef STD_H
 using namespace std;
@@ -14,10 +14,6 @@ WeaponManager wep_drop;
 ArmorManager arm_shop("res/ArmorsShop.csv");
 ArmorManager arm_drop;
 
-Character *p = makeRole(-1);
-Character *m = makeRole(-1);
-
-Event e;
 
 /* 資料清單 */
 map<int, string> mon_list = Monster().getNameDict();
@@ -48,6 +44,7 @@ void runEvnR2();
 
 
 /* 動作函式 */
+bool f_Game = true;
 void showPlayerState()
 {
     cout << "==========<  ※  >=========="
@@ -76,7 +73,7 @@ void creatCharacter()
     Character *ex;
     do {
         CLS_M
-        e.displayText("請選擇職業:\n\n(0) 職業數值\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
+        displayText("請選擇職業:\n\n(0) 職業數值\n(1) 狂戰士\n(2) 坦克\n(3) 刺客\n\n");
         cin >> role_opt;
         reChoose(role_opt, 0, 3);
 
@@ -114,22 +111,95 @@ void creatCharacter()
         }
     } while ( !role_flag );
     p = ex;
-    e.upPtr(p);
-    e.displayText("你選擇了" + p->getRoleName() + "\n", 3);
+    upPtr(p);
+    CLS_M
+    displayText("你選擇了" + p->getRoleName() + "\n", 3);
     sleep(500);
 }
-bool f_Game = true;
+void addPoint(){
+    int add;
+    int choice;
+    vector<int> state = p->getState();
+    while (p->getPoint() > 0)
+    {
+        cout << "請輸入想分配的數值：\n"
+             << "0. 保留點數\n"
+             << "1. 生命力\n"
+             << "2. 攻擊力\n"
+             << "3. 防禦力\n"
+             << "4. 速度\n";
+        cin >> choice;
+        reChoose(choice, 0, 4);
+        if (choice == 0) break;
+
+        cout << "你還剩餘" << p->getPoint() << "點可以分配。\n"
+             << "請輸入想分配的點數：\n";
+        if (!(cin >> add) || (add < 0 || add > p->getPoint())) {
+            cout << "你好像沒有你輸入的點數喔。\n" 
+                 << "你還剩餘" << p->getPoint() << "點可以分配。\n";
+            sleep(600);
+            reChoose(add, 0, p->getPoint());
+        }
+
+        p->setPoint(p->getPoint() - add);
+        switch (choice)
+        {
+        case 1:
+            p->setState(state[eMAX_HP] + add, state[eHP] + add);
+            break;
+        case 2:
+            p->setState(-1,-1, state[eATK] + add);
+            break;
+
+        case 3:
+            p->setState(-1,-1,-1, state[eDEF] + add);
+            break;
+
+        case 4:
+            p->setState(-1,-1,-1,-1, state[eSPD] + add);
+            break;
+        }
+
+        cout<<"你目前的數值為："<<endl;
+        showPlayerState();
+        cout<<endl;
+        sleep(1000);
+    }
+
+    if (choice != 0)
+    {
+        cout<<"加點完成，要進入遊戲了嗎？\n0.離開遊戲\n1.進入遊戲\n2.更改數值"<<endl;
+        cin >> choice;
+        reChoose(choice, 0, 2);
+
+        switch(choice)
+        {
+        case 0:
+            f_Game = false;
+            break;
+        case 1:
+            cout<<"加點完成，進入遊戲。"<<endl;
+            sleep(400);
+            break;
+        case 2:
+            cout<<"更改數值，重新配點。"<<endl;
+            sleep(400);
+            addPoint();
+            break;
+        }
+    }
+}
 void endGame()
 {
     p->setState(0,0);
-    e.displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
+    displayText("臨死前的你，不斷地責怪疏忽大意的自己\n", 100);
     sleep(800);
-    e.displayText("而你的意識也越來越模糊，直到...\n......\n...............\n", 150);
+    displayText("而你的意識也越來越模糊，直到...\n......\n...............\n", 150);
     sleep(1000);
     CLS_M
-    e.displayText("\t「 好... 像... ...\n\t\t有點...\n\t.........", 200);
+    displayText("\t「 好... 像... ...\n\t\t有點...\n\t.........", 200);
     sleep(1200);
-    e.displayText("\t..........\n\n\t\t.....\t冷...... 」\n", 300);
+    displayText("\t..........\n\n\t\t.....\t冷...... 」\n", 300);
     sleep(1500);
     f_Game = false;
 }
@@ -152,7 +222,7 @@ bool isEscape()
 void showAttack()
 {
     CLS_M
-    e.isFight(true);
+    isFight(true);
     // 怪物先手判斷
     if (m->getState()[eSPD] > p->getState()[eSPD])
     {
@@ -214,10 +284,10 @@ void showAttack()
             {
                 CLS_M
                 p->isRecovery( random(p->getState()[eHP] * 0.1, p->getState()[eHP] * 0.3) );
-                e.displayText("聖光灑落在你身上，恢復了些微血量。\n\n", 2);
+                displayText("聖光灑落在你身上，恢復了些微血量。\n\n", 2);
                 sleep(500);
                 if (random(1, 100) <= 35)
-                    e.displayText( m->getRoleName() +
+                    displayText( m->getRoleName() +
                                 "趁機偷襲，你受到 " +
                                 to_string(p->onHit(m->getState()[eATK])) +
                                 " 點傷害\n\n" );
@@ -276,19 +346,19 @@ int main()
     p->setArmor( arm_drop.makeArmor(p->getRoleType(), "鐵製背心"), false );
     p->isRecovery( p->getArmor()->getHealth() );
 
+    addPoint();
 
-
-    showLoadingAnimation(25);
+    if (f_Game) showLoadingAnimation(25);
     sleep(20);
     STOP_M
 
 
     // 設定例外事件，跳過該回合
-    e.setExcept( {R_1, R_2} );
-    while (f_Game && e.Desert_menu())
+    setExcept( {R_1, R_2} );
+    while (f_Game && Desert_menu())
     {
-        e.upPtr(p, m);
-        switch(e.whichEvent())
+        upPtr(p, m);
+        switch(whichEvent())
         {
             case EX:
             {
@@ -303,7 +373,7 @@ int main()
             }
             case G_1:
                 debuff = -3;
-                e.isLeave(true);
+                isLeave(true);
                 break;
             case G_2:
                 runEvnG2();
@@ -313,7 +383,7 @@ int main()
                 runEvnG3();
                 break;
             case G_4:
-                e.isLeave(true);
+                isLeave(true);
                 break;
             case S_2:
                 runEvnS2();
@@ -328,7 +398,7 @@ int main()
                     // 依最大血量 補20%血量
                     int health = p->getState()[eMAX_HP];
                     p->isRecovery( (health / 10) * 2 );
-                    e.displayText( RE, 1, 3 );
+                    displayText( RE, 1, 3 );
                 } else {
                     // 依 debuff 狀態 扣當前血量
                     int health = p->getState()[eHP];
@@ -343,11 +413,11 @@ int main()
             case R_2:
                 CLS_M
                 runEvnR2();
-                e.endEvent();
+                endEvent();
                 break;
         }
-        f_Game = e.Desert_alive();
-        e.endEvent();
+        f_Game = Desert_alive();
+        endEvent();
         sleep(1500);
     }
 }
@@ -368,7 +438,7 @@ void runEvnG2()
         if (rd < 7 && rd&1) // 1 3 5
         {
             m = makeRole(0, mon_list[random(1, mon_list.size()-1)]);
-            e.displayText("從冒險者的遺物中冒出了一個黑影，那是....\n");
+            displayText("從冒險者的遺物中冒出了一個黑影，那是....\n");
             sleep(500);
 
             // 戰鬥
@@ -540,7 +610,7 @@ void runEvnR2()
     int health = p->getState()[eMAX_HP];
     p->isRecovery( (health / 10) * 8 );
 
-    e.displayText( RE, 2);
+    displayText( RE, 2);
     cout<<"你付了 $"<<lost<<" 給旅人，他心滿意足的離開了\n";
 
     if (random(1, 5) > 3)
