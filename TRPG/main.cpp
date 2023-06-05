@@ -1,4 +1,4 @@
-#include "Event2.h"
+#include "Event.h"
 
 #ifndef STD_H
 using namespace std;
@@ -104,7 +104,7 @@ void creatCharacter()
                 ex = makeRole(role_opt);
                 cout << "你選擇的職業是： "
                      << ex->getRoleName() << endl
-                     << "確定要創建這個角色嗎？\n(0) 取消 (1) 確定\n";
+                     << "確定要使用這個角色嗎？\n(0) 取消 (1) 確定\n";
                 cin  >> role_flag;
                 reChoose(role_flag, 0, 1);
                 break;
@@ -116,14 +116,39 @@ void creatCharacter()
     displayText("你選擇了" + p->getRoleName() + "\n", 3);
     sleep(500);
 }
+/* #20230605 轉職及加點 */
+void changeCharacter(Weapon *wep, Armor *arm)
+{
+    // 取得之前總點數
+    vector<int> recPt = p->getPointHistory();
+    int allPoint = [&](){
+        int sum = p->getPoint();
+        for(auto pt: recPt)
+            sum+=pt;
+        return sum;
+    }();
+    // 取得之前的金錢
+    int allMoney = p->getMoney();
+
+    creatCharacter();
+
+    // 依照記錄重新分配數值
+    p->setMoney(allMoney);
+    p->setPoint(allPoint);
+    p->addState(recPt[eMAX_HP], recPt[eHP], recPt[eATK], recPt[eDEF], recPt[eSPD]);
+    // 重新設定武器
+    p->setWeapon(wep);
+    p->setArmor(arm);
+}
 void addPoint(){
     int add;
     int choice;
     vector<int> state = p->getState();
     while (p->getPoint() > 0)
     {
-        cout << "請輸入想分配的數值：\n"
-             << "0. 保留點數\n"
+        displayText("請輸入想分配的數值：\n", 2);
+        sleep(200);
+        cout << "0. 保留點數\n"
              << "1. 生命力\n"
              << "2. 攻擊力\n"
              << "3. 防禦力\n"
@@ -132,38 +157,43 @@ void addPoint(){
         reChoose(choice, 0, 4);
         if (choice == 0) break;
 
-        cout << "你還剩餘" << p->getPoint() << "點可以分配。\n"
+        cout << "目前剩餘 [" << p->getPoint() << "點] 可以分配。\n"
              << "請輸入想分配的點數：\n";
         if (!(cin >> add) || (add < 0 || add > p->getPoint())) {
             cout << "你好像沒有你輸入的點數喔。\n" 
-                 << "你還剩餘" << p->getPoint() << "點可以分配。\n";
+                 << "你還剩餘 [" << p->getPoint() << "點] 可以分配。\n";
             sleep(600);
             reChoose(add, 0, p->getPoint());
         }
-
-        p->setPoint(p->getPoint() - add);
-        switch (choice)
-        {
-        case 1:
-            p->setState(state[eMAX_HP] + add, state[eHP] + add);
-            break;
-        case 2:
-            p->setState(-1,-1, state[eATK] + add);
-            break;
-
-        case 3:
-            p->setState(-1,-1,-1, state[eDEF] + add);
-            break;
-
-        case 4:
-            p->setState(-1,-1,-1,-1, state[eSPD] + add);
-            break;
+        if (add == 0){
+            cout << "返回分配點數介面。\n";
+            sleep(1000);
         }
+        if (add > 0){
+            switch (choice)
+            {
+            case 1:
+                p->addState(add, add);
+                break;
+            case 2:
+                p->addState(-1,-1, add);
+                break;
 
-        cout<<"你目前的數值為："<<endl;
-        showPlayerState();
-        cout<<endl;
-        sleep(1000);
+            case 3:
+                p->addState(-1,-1,-1, add);
+                break;
+
+            case 4:
+                p->addState(-1,-1,-1,-1, add);
+                break;
+            }
+
+            cout<<"你目前的數值為："<<endl;
+            showPlayerState();
+            cout<<endl;
+            STOP_M
+        }
+        CLS_M
     }
 
     if (choice != 0)
@@ -371,6 +401,14 @@ int main()
                 showAttack();
                 break;
             }
+            case PT:
+                CLS_M
+                addPoint();
+                break;
+            case CHG:
+                CLS_M
+                changeCharacter(p->getWeapon(), p->getArmor());
+                break;
             case G_1:
                 debuff = -3;
                 isLeave(true);
@@ -409,6 +447,7 @@ int main()
                     else endGame();
                     sleep(1000);
                 }
+                endEvent();
                 break;
             case R_2:
                 CLS_M

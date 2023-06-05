@@ -31,7 +31,7 @@ using namespace std;
 #define cin std::cin
 #endif
 
-enum eState {EX, FOR, GO, STAY, RE};
+enum eState {EX, FOR, GO, STAY, RE, PT, CHG};
 enum eID
 {
     F_1 = 1,
@@ -48,6 +48,31 @@ enum eID
     R_2 = 32
 };
 
+
+// 事件旗標
+int Count = 0;
+int EvnSignal = -1;
+bool Leave = false;
+bool Fight = false;
+
+Character *p = makeRole(-1);
+Character *m = makeRole(-1);
+FileManager file("event/Events.csv");
+
+// 例外事件 ID
+vector<eID> Except;
+
+// 事件排程
+vector<int> Ds_go;
+vector<int> Ds_stay;
+map<string, vector<string>> Msg = file.getText();
+map<eState, string> State
+{
+    {FOR, "foreword"},
+    {GO, "go"},
+    {STAY, "stay"},
+    {RE, "relive"}
+};
 
 // 隨機 利用<random>2^19937散度
 int random(int min, int max) {
@@ -111,244 +136,196 @@ bool checkChar(char &c, bool eng = true, bool num = true)
 }
 
 
-class Event
-{
-private:
-    // 事件旗標
-    int Count;
-    int EvnSignal;
-    bool Leave;
-    bool Fight;
-
-    Character *p;
-    Character *m;
-
-    // 例外事件 ID
-    vector<eID> Except;
-
-    // 事件排程
-    vector<int> Ds_go;
-    vector<int> Ds_stay;
-
-    map<string, vector<string>> Msg;
-    map<eState, string> State
+// 確保亂數不重複
+void Desert_rand(vector<int> &ds,int min, int max){
+    for(int i=0; i < max-min+1; i++)
     {
-        {FOR, "foreword"},
-        {GO, "go"},
-        {STAY, "stay"},
-        {RE, "relive"}
-    };
-
-
-protected:
-    // 確保亂數不重複
-    void Desert_rand(vector<int> &ds,int min, int max){
-        for(int i=0; i < max-min+1; i++)
-        {
-            ds.push_back(random(min, max));
-            for (int j=0; j < i; j++)
-                if (ds[i] == ds[j])
-                {
-                    ds.pop_back();
-                    i--;
-                    break;
-                }
-        }
+        ds.push_back(random(min, max));
+        for (int j=0; j < i; j++)
+            if (ds[i] == ds[j])
+            {
+                ds.pop_back();
+                i--;
+                break;
+            }
     }
+}
 
-    void Desert_go(){
-        if (Ds_go.empty()) Desert_rand(Ds_go, G_1, G_4);
-        int rd = Ds_go.at(0);
-        Ds_go.erase( Ds_go.begin() );
+// 逐字逐句顯示文本，延遲 0 ~ 5 級 (15 ~ 90 ms)
+void displayText(string msg, int t = 1)
+{
+    int count = 0;
+    for (char c: msg) {
+        cout << c << flush;
+        if (!checkChar(c) && count < 3)
+        {
+            count++;
+            continue;
+        }
+        count = 0;
+        sleep([&](){
+            switch (t)
+            {
+            case 0:
+                return 15;
+                break;
+            case 1:
+                return 30;
+                break;
+            case 2:
+                return 45;
+                break;
+            case 3:
+                return 60;
+                break;
+            case 4:
+                return 75;
+                break;
+            case 5:
+                return 90;
+                break;
+            case -1:
+                return 0;
+                break;
+            default:
+                return t;
+                break;
+            }
+        }());
+    }
+}
+void displayText(eState e, int opt = 1, int t = 1)
+{
+    string temp = Msg[ State[e] + "_" + to_string(opt) ][0];
+    displayText(temp, t);
+}
 
-        displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
+void Desert_go(){
+    if (Ds_go.empty()) Desert_rand(Ds_go, G_1, G_4);
+    int rd = Ds_go.at(0);
+    Ds_go.erase( Ds_go.begin() );
+
+    displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
+    EvnSignal = rd;
+}
+
+void Desert_stay(){
+    if(Count >= 3){
+        string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
+        "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
+        "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
+        "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
+        displayText(msg, 4);
+        displayText("\t\t 你 死 了 (新細明體)\n", 5);
+
+        // 設定角色歸零
+        p->setRole("");
+        p->setState(0,0,0,0);
+        Leave = false;
+        Fight = false;
+        EvnSignal = -1;
+        Count = 0;
+    } else {
+        if (Ds_stay.empty()) Desert_rand(Ds_stay, S_1, S_4);
+        int rd = Ds_stay.at(0);
+        Ds_stay.erase( Ds_stay.begin() );
+
+        displayText(STAY, rd-20);
+        // if (rd == S_4) Fight = true;
         EvnSignal = rd;
     }
+}
 
-    void Desert_stay(){
-        if(Count >= 3){
-            string msg="顯然待在原地並不是個明智的選擇，不知為何，你感受到一雙犀利的目光正朝著自己看，你似乎成為了獵物。\n"\
-            "你無意間朝著某個方向看過去，於是你開始後悔，後悔不該在這裡逗留如此久。\n"\
-            "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
-            "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
-            displayText(msg, 4);
-            displayText("\t\t 你 死 了 (新細明體)\n", 5);
+// 設定例外事件
+void setExcept(vector<eID> exc) { Except = exc; }
+// 是否進入戰鬥
+bool isFight() { return Fight; }
+void isFight(bool ft) { Fight = ft; }
+// 是否倒下
+bool isLeave() { return Leave; }
+void isLeave(bool lev) { Leave = lev; }
+// 回傳事件編號
+int whichEvent() { return EvnSignal; }
+// 結束事件
+void endEvent()
+{
+    Fight = false;
+    Leave = false;
+}
 
-            // 設定角色歸零
-            p->setRole("");
-            p->setState(0,0,0,0);
-            Leave = false;
-            Fight = false;
-            EvnSignal = -1;
-            Count = 0;
-        } else {
-            if (Ds_stay.empty()) Desert_rand(Ds_stay, S_1, S_4);
-            int rd = Ds_stay.at(0);
-            Ds_stay.erase( Ds_stay.begin() );
+// 更新玩家及怪物的指標
+bool upPtr(Character *up_p = nullptr, Character *up_m = nullptr)
+{
+    if (!up_p && !up_m)
+        return false;
 
-            displayText(STAY, rd-20);
-            // if (rd == S_4) Fight = true;
-            EvnSignal = rd;
-        }
-    }
+    if (up_p) p = up_p;
+    if (up_m) m = up_m;
+    return true;
+}
 
+// 檢查玩家是否存活，並更新訊號
+bool Desert_alive(){
+    if (p->getRoleName().empty()) return false; // 即死事件
 
-public:
-    Event()
+    if (Leave)
+    {   // 倒下事件
+        EvnSignal = R_1;
+    } else if (Fight && p->getState()[eHP] <= 0)
+        EvnSignal = R_2; // 被打倒
+    else
     {
-        Count = 0;
         EvnSignal = -1;
-        Leave = false;
-        Fight = false;
-        FileManager file("event/Events.csv");
-        Msg = file.getText();
+        if (p->getState()[eHP] <= 0) return false;
     }
-    Event(Character *p, Character *m)
+    return true;
+}
+
+// 事件選項
+bool Desert_menu(){
+    // 若碰到例外事件，跳過該次選擇
+    for (auto ex: Except)
+        if(EvnSignal == ex) return true;
+
+    CLS_M
+    string msg = "";
+    int option = 0;
+
+    msg = "你現在想做什麼？\n\n(0) 練習戰鬥\n(1) 往前進\n(2) 待在原地\n(3) 分配點數\n(4) 改變職業\n(5) 離開遊戲\n";
+    displayText(msg, 2);
+    cin >> option;
+    reChoose(option, 0, 5);
+
+    switch (option)
     {
-        Count = 0;
-        EvnSignal = -1;
-        Leave = false;
-        Fight = false;
-        FileManager file("event/Events.csv");
-        Msg = file.getText();
-        upPtr(p, m);
-    }
-    ~Event(){}
-
-    // 設定例外事件
-    void setExcept(vector<eID> exc) { Except = exc; }
-    // 是否進入戰鬥
-    bool isFight() { return Fight; }
-    void isFight(bool ft) { Fight = ft; }
-    // 是否倒下
-    bool isLeave() { return Leave; }
-    void isLeave(bool lev) { Leave = lev; }
-    // 回傳事件編號
-    int whichEvent() { return EvnSignal; }
-    // 結束事件
-    void endEvent()
-    {
-        Fight = false;
-        Leave = false;
-    }
-
-    // 更新玩家及怪物的指標
-    bool upPtr(Character *p = nullptr, Character *m = nullptr)
-    {
-        if (!p && !m)
-            return false;
-
-        if (p) this->p = p;
-        if (m) this->m = m;
-        return true;
-    }
-
-    // 逐字逐句顯示文本，延遲 0 ~ 5 級 (15 ~ 90 ms)
-    void displayText(string msg, int t = 1)
-    {
-        int count = 0;
-        for (char c: msg) {
-            cout << c << flush;
-            if (!checkChar(c) && count < 3)
-            {
-                count++;
-                continue;
-            }
-            count = 0;
-            sleep([&](){
-                switch (t)
-                {
-                case 0:
-                    return 15;
-                    break;
-                case 1:
-                    return 30;
-                    break;
-                case 2:
-                    return 45;
-                    break;
-                case 3:
-                    return 60;
-                    break;
-                case 4:
-                    return 75;
-                    break;
-                case 5:
-                    return 90;
-                    break;
-                case -1:
-                    return 0;
-                    break;
-                default:
-                    return t;
-                    break;
-                }
-            }());
-        }
-    }
-    void displayText(eState e, int opt = 1, int t = 1)
-    {
-        string temp = Msg[ State[e] + "_" + to_string(opt) ][0];
-        displayText(temp, t);
-    }
-
-    // 檢查玩家是否存活，並更新訊號
-    bool Desert_alive(){
-        if (p->getRoleName().empty()) return false; // 即死事件
-
-        if (Leave)
-        {   // 倒下事件
-            EvnSignal = R_1;
-        } else if (Fight && p->getState()[eHP] <= 0)
-            EvnSignal = R_2; // 被打倒
-        else
-        {
-            EvnSignal = -1;
-            if (p->getState()[eHP] <= 0) return false;
-        }
-        return true;
-    }
-
-    // 事件選項
-    bool Desert_menu(){
-        // 若碰到例外事件，跳過該次選擇
-        for (auto ex: Except)
-            if(EvnSignal == ex) return true;
-
-        CLS_M
-        string msg = "";
-        int option = 0;
-
-        msg = "你現在想做什麼？\n\n(0) 練習戰鬥\n(1) 往前進\n(2) 待在原地\n(3) 離開遊戲\n";
+    case 0:
+        EvnSignal = EX;
+        break;
+    case 1:
+        msg = "你選擇了前進\n";
         displayText(msg, 2);
-        cin >> option;
-        reChoose(option, 0, 3);
-
-        switch (option)
-        {
-        case 0:
-            EvnSignal = EX;
-            break;
-        case 1:
-            msg = "你選擇了前進\n";
-            displayText(msg, 2);
-            Desert_go();
-            Count = 0;
-            break;
-        case 2:
-            msg="你選擇了待在原地\n";
-            displayText(msg, 2);
-            Desert_stay();
-            Count++;
-            break;
-        case 3:
-            return false;
-            break;
-        default:
-            reChoose(option);
-            break;
-        }
-        return true;
+        Desert_go();
+        Count = 0;
+        break;
+    case 2:
+        msg="你選擇了待在原地\n";
+        displayText(msg, 2);
+        Desert_stay();
+        Count++;
+        break;
+    case 3:
+        EvnSignal = PT;
+        break;
+    case 4:
+        EvnSignal = CHG;
+        break;
+    case 5:
+        return false;
+        break;
+    default:
+        reChoose(option, 0, 5);
+        break;
     }
-};
+    return true;
+}
 #endif

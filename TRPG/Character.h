@@ -27,6 +27,7 @@ protected:
     int SPD;
     int Money;
     int Point;
+    vector<int> recPoint;
 
     // 會 new 物件出來，用指標抓取該位址
     Weapon *weapon;
@@ -40,6 +41,7 @@ public:
         setState(health, health, atk, def, spd);
         setMoney(money);
         setPoint(point);
+        recPoint = {0, 0, 0, 0, 0};
         weapon = new Weapon();
         armor = new Armor();
     }
@@ -55,6 +57,7 @@ public:
         else Role_Type = 0;
     }
 
+    // 直接設定
     void setState(int health_max = -1, int health = -1, int atk = -1, int def = -1, int spd = -1)
     {
         if (health_max != -1) Health_Max = health_max;
@@ -65,6 +68,45 @@ public:
 
         if (Health_Max < 0) Health_Max = 0;
         if (Health < 0) Health = 0;
+        if (ATK < 0) ATK = 0;
+        if (DEF < 0) DEF = 0;
+        if (SPD < 0) SPD = 0;
+    }
+
+    // 加值功能，同時記錄角色數值加點狀況 #20230605
+    void addState(int health_max = -1, int health = -1, int atk = -1, int def = -1, int spd = -1)
+    {
+        if (health_max != -1 && Point - health_max >= 0) {
+            Health_Max += health_max;
+            recPoint[eMAX_HP] += health_max;
+            Point -= health_max;
+        }
+        if (health != -1 && Point - health >= 0) {
+            Health += health;
+            recPoint[eHP] += health;
+            Point -= health;
+        }
+        if (atk != -1 && Point - atk >= 0) {
+            ATK += atk;
+            recPoint[eATK] += atk;
+            Point -= atk;
+        }
+        if (def != -1 && Point - def >= 0) {
+            DEF += def;
+            recPoint[eDEF] += def;
+            Point -= def;
+        }
+        if (spd != -1 && Point - spd >= 0) {
+            SPD += spd;
+            recPoint[eSPD] += spd;
+            Point -= spd;
+        }
+
+        if (Health_Max < 0) Health_Max = 0;
+        if (Health < 0) Health = 0;
+        if (ATK < 0) ATK = 0;
+        if (DEF < 0) DEF = 0;
+        if (SPD < 0) SPD = 0;
     }
 
     void setMoney(int money)
@@ -131,6 +173,8 @@ public:
     int getMoney() { return Money; }
     // 取得剩餘點數
     int getPoint() { return Point; }
+    // 取得點數紀錄
+    vector<int> getPointHistory() { return recPoint; }
     // 取得武器物件
     Weapon *getWeapon() { return weapon; }
     // 取得防具物件
