@@ -390,6 +390,7 @@ int main()
         upPtr(p, m);
         switch(whichEvent())
         {
+            // 練習
             case EX:
             {
                 int opt;
@@ -401,14 +402,20 @@ int main()
                 showAttack();
                 break;
             }
+
+            // 加點
             case PT:
                 CLS_M
                 addPoint();
                 break;
+
+            // 轉職
             case CHG:
                 CLS_M
                 changeCharacter(p->getWeapon(), p->getArmor());
                 break;
+
+            // 前進事件
             case G_1:
                 debuff = -3;
                 isLeave(true);
@@ -423,6 +430,8 @@ int main()
             case G_4:
                 isLeave(true);
                 break;
+
+            // 停在原地
             case S_2:
                 runEvnS2();
                 break;
@@ -430,6 +439,8 @@ int main()
                 sleep(1500);
                 runEvnS4();
                 break;
+
+            // 倒下後，下一回合觸發
             case R_1:
                 if (debuff >= 0)
                 {
@@ -614,21 +625,41 @@ void runEvnS2()
         } while (!f_buy);
     }
 }
-
+/* #20230606 S4 - 特別武器事件更新 */
 void runEvnS4()
 {
-    m = makeRole(0, "哥布林");
     string wep_name = wep_drop_names[ random(0, wep_drop_names.size()-1) ];
     Weapon *m_wep = new MonsterWeapon(wep_name, random(0, 2)); // 回傳特別武器
+    m = makeRole(0, "哥布林");
+    m->setRole("滿身疤痕的哥布林"); // 設定特殊名字
+    m->setWeapon(m_wep);
+    char opt;
 
     showAttack();
     CLS_M
     if (m->getState()[eHP] <= 0)
     {
-        cout << "你撿起了哥布林死前握在手上的武器 " << m_wep->getName() << "\n";
-        p->setWeapon( m_wep, false );
-        showPlayerState();
-        sleep(1000);
+        displayText("哥布林倒下後，你發現牠手上的武器，似乎有點不同\n");
+        sleep(600);
+        cout << "\n==========<  Wep  >=========="
+             << "\n武器: " << m_wep->getName()
+             << "\n攻擊力: " << m_wep->getATK()
+             << "\n==========<---O--->==========\n";
+        sleep(300);
+        cout << "是否要更換裝備？ (y/n)\n";
+        cin >> opt;
+        if (opt == 'y' || opt == 'Y')
+        {
+            CLS_M
+            displayText("你撿起了哥布林死前握在手上的武器 " + m_wep->getName() + "\n\n");
+            p->setWeapon( m_wep, false );
+            sleep(200);
+            showPlayerState();
+            STOP_M
+        } else {
+            cout << "那把武器看上去有點不祥，還是盡早離開這裡吧...\n";
+            sleep(1000);
+        }
     }
 }
 
