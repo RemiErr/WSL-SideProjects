@@ -553,67 +553,58 @@ void runEvnG3()
 void runEvnS2()
 {
     map<int, string> items; // 商品清單
-    int index = 1;
-    int split[2] = {0};
     int num = 0;
     char opt;
     cin >> opt;
     if (opt == 'y' || opt == 'Y')
     {
-        bool f_buy = false;
         do{
+            int index = 1;
+            int split[2] = {0};
             CLS_M
-            cout << "==========<  $  >==========\n"
-                << "\t[ 武 器 ]\n";
+            cout << "==========<   $   >==========\n"
+                 << "\t[ 武 器 ]\n"
+                 << "\t       ATK, Price\n";
                 for (auto wep: wep_shop_list)
                 {
                     split[0] = index;
                     items[index++] = wep.first;
-                    cout << split[0] << ". " << wep.first << "\t:\t";
-                    for (auto &val: wep.second)
-                        cout << val << ((&val != &wep.second[wep.second.size()-1])? ", ":"\n");
+                    cout << split[0] << ". " << wep.first << " :  "
+                         << wep.second[0] << ", $" << wep.second[1] << "\n";
                 }
-            cout << "==========<--+-->==========\n"
-                << "\t[ 防 具 ]\n";
+            cout << "==========<---+--->==========\n"
+                 << "\t[ 防 具 ]\n"
+                 << "\t       HP, DEF, Price\n";
                 for (auto arm: arm_shop_list)
                 {
                     split[1] = index;
                     items[index++] = arm.first;
-                    cout << split[1] << ". "  << arm.first << "\t:\t";
-                    for (auto &val: arm.second)
-                        cout << val << ((&val != &arm.second[arm.second.size()-1])? ", ":"\n");
+                    cout << split[1] << ". "  << arm.first << " :  "
+                         << arm.second[0] << ", " << arm.second[1] << ", $" << arm.second[2] << "\n";
                 }
-            cout << "==========<  $  >==========\n";
-            cout << "請輸入武器編號: ";
+            cout << "==========<   $   >==========\n"
+                 << "剩餘金錢: $" << p->getMoney() << "\n"
+                 << "(0) 離開商店\n\n請輸入武器編號: ";
             cin >> num;
+            reChoose(num, 0, split[1]);
+
+            if (num == 0) break;
 
             // 購買武器
             if (0 < num && num <= split[0])
             {
                 Weapon *wep = wep_shop.makeWeapon( p->getRoleType(), items[num] );
 
-                if (p->getMoney() >= wep->getPrice())
-                {
-                    f_buy = true;
-                    p->setWeapon( wep );
-                } else {
-                    f_buy = false;
+                if (p->getMoney() < wep->getPrice())
                     cout << "\n\t[ 餘額不足 請充值 ]\n";
-                }
             }
             // 購買防具
             else if (split[0] < num && num <= split[1])
             {
                 Armor *arm = arm_shop.makeArmor( p->getRoleType(), items[num] );
 
-                if (p->getMoney() >= arm->getPrice())
-                {
-                    f_buy = true;
-                    p->setArmor( arm );
-                } else {
-                    f_buy = false;
+                if (p->getMoney() < arm->getPrice())
                     cout << "\n\t[ 餘額不足 請充值 ]\n";
-                }
             }
             // 錯誤編號
             else cout << "\n\t[ 請輸入正確編號 ]\n";
@@ -621,8 +612,8 @@ void runEvnS2()
             CLS_M
             cout << "\t[ 目前狀態 ]\n";
             showPlayerState();
-            sleep(1000);
-        } while (!f_buy);
+            STOP_M
+        } while (p->getMoney() >= 0);
     }
 }
 /* #20230606 S4 - 特別武器事件更新 */
