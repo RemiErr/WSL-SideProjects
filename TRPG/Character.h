@@ -12,7 +12,7 @@ using namespace std;
 #endif
 
 // 角色數值標籤
-enum { eMAX_HP, eHP, eATK, eDEF, eSPD, eMONEY };
+enum { eMAX_HP, eHP, eATK, eDEF, eSPD};
 
 // 基礎角色資料
 class Character
@@ -74,16 +74,13 @@ public:
     }
 
     // 加值功能，同時記錄角色數值加點狀況 #20230605
-    void addState(int health_max = -1, int health = -1, int atk = -1, int def = -1, int spd = -1)
+    void addState(int health = -1, int atk = -1, int def = -1, int spd = -1)
     {
-        if (health_max != -1 && Point - health_max >= 0) {
-            Health_Max += health_max;
-            recPoint[eMAX_HP] += health_max;
-            Point -= health_max;
-        }
         if (health != -1 && Point - health >= 0) {
+            Health_Max += health;
             Health += health;
             recPoint[eHP] += health;
+
             Point -= health;
         }
         if (atk != -1 && Point - atk >= 0) {
@@ -119,6 +116,25 @@ public:
     {
         Point = point;
         if (Point < 0) Point = 0;
+    }
+
+    // 重置點數
+    void resetPoint()
+    {
+        int sum = 0;
+
+        Health_Max -= recPoint[eHP];
+        Health -= recPoint[eHP];
+        ATK -= recPoint[eATK];
+        DEF -= recPoint[eDEF];
+        SPD -= recPoint[eSPD];
+        
+        for (auto &re: recPoint)
+        {
+            sum += re;
+            re = 0;
+        }
+        setPoint(sum);
     }
 
     // 設定角色武器

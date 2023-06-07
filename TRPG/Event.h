@@ -25,6 +25,7 @@
 #include "Character.h"
 #include "FileManager.h"
 
+
 #ifndef STD_H
 using namespace std;
 #define cout std::cout
@@ -135,7 +136,6 @@ bool checkChar(char &c, bool eng = true, bool num = true)
     return false;
 }
 
-
 // 確保亂數不重複
 void Desert_rand(vector<int> &ds,int min, int max){
     for(int i=0; i < max-min+1; i++)
@@ -151,6 +151,30 @@ void Desert_rand(vector<int> &ds,int min, int max){
     }
 }
 
+/* 動作函式 */
+bool f_Game = true;
+void showPlayerState()
+{
+    cout << "==========<  ※  >=========="
+         << "\n血量: "   << p->getState()[eHP] << " / " << p->getState()[eMAX_HP]
+         << "\n攻擊力: " << p->getState()[eATK] << " 防禦力: " << p->getState()[eDEF]
+         << "\n速度: " << p->getState()[eSPD] << " 金幣: "   << p->getMoney()
+         << "\n==========<--+-->=========="
+         << "\n職業: "   << p->getRoleName()
+         << "\n武器: " << p->getWeapon()->getName()
+         << "\n防具: " << p->getArmor()->getName()
+         << "\n==========<--o-->==========\n";
+}
+
+void showMonsterState()
+{
+    cout << "==========<  ⊙  >=========="
+         << "\n怪物: " << m->getRoleName()
+         << "\n血量: " << m->getState()[eHP] << " / " << m->getState()[eMAX_HP]
+         << "\n攻擊力: " << m->getState()[eATK] << " 防禦力: " << m->getState()[eDEF]
+         << "\n速度: " << m->getState()[eSPD]
+         << "\n==========<--o-->==========\n";
+}
 // 逐字逐句顯示文本，延遲 0 ~ 5 級 (15 ~ 90 ms)
 void displayText(string msg, int t = 1)
 {
@@ -194,7 +218,7 @@ void displayText(string msg, int t = 1)
         }());
     }
 }
-void displayText(eState e, int opt = 1, int t = 1)
+void displayText(eState e, int opt = 1, int t = 1)//eState是事件標籤
 {
     string temp = Msg[ State[e] + "_" + to_string(opt) ][0];
     displayText(temp, t);
@@ -206,7 +230,7 @@ void Desert_go(){
     Ds_go.erase( Ds_go.begin() );
 
     displayText(GO, rd-10, rd != G_1 || rd != G_4 ? 2:3);
-    EvnSignal = rd;
+    EvnSignal = rd;//因為他是11所以減掉10變成1-4(有四個事件)
 }
 
 void Desert_stay(){
@@ -216,7 +240,7 @@ void Desert_stay(){
         "還沒來得及看清那目光的主人是什麼樣子，身上卻已烙上了血爪印，你身體開始感覺到寒冷...\n\n"\
         "你不曉得你面對的是什麼，你只感覺自己的身體被無情的撕裂、扭曲，直至虛無。\n\n";
         displayText(msg, 4);
-        displayText("\t\t 你 死 了 (新細明體)\n", 5);
+        displayText("\t\t 你 死 了\n", 5);
 
         // 設定角色歸零
         p->setRole("");
@@ -291,10 +315,10 @@ bool Desert_menu(){
     string msg = "";
     int option = 0;
 
-    msg = "你現在想做什麼？\n\n(0) 練習戰鬥\n(1) 往前進\n(2) 待在原地\n(3) 分配點數\n(4) 改變職業\n(5) 離開遊戲\n";
+    msg = "你現在想做什麼？\n\n(0) 練習戰鬥\n(1) 往前進\n(2) 待在原地\n(3) 分配點數\n(4) 改變職業\n(5) 查看目前狀態\n(6) 離開遊戲\n";
     displayText(msg, 2);
     cin >> option;
-    reChoose(option, 0, 5);
+    reChoose(option, 0, 6);
 
     switch (option)
     {
@@ -320,10 +344,17 @@ bool Desert_menu(){
         EvnSignal = CHG;
         break;
     case 5:
+        msg = "你查看了目前的狀態\n";
+        displayText(msg, 2);
+        showPlayerState();
+        STOP_M;
+        break;
+
+    case 6:
         return false;
         break;
     default:
-        reChoose(option, 0, 5);
+        reChoose(option, 0, 6);
         break;
     }
     return true;
