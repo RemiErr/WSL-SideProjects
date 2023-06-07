@@ -60,7 +60,7 @@ public:
         {
             Name = name;
             Health = arm[name][0] * 2;
-            DEF = arm[name][1] * 1.5 + 0.5;
+            DEF = round(arm[name][1] * 1.5);
             Price = arm[name][2];
             Armor(name, DEF, Health, Price);
         }
@@ -80,8 +80,8 @@ public:
         if (!arm[name].empty())
         {
             Name = name;
-            Health = arm[name][0] * 0.5 + 0.5;
-            DEF = arm[name][1] * 0.7 + 0.5;
+            Health = round(arm[name][0] * 0.5);
+            DEF = round(arm[name][1] * 0.7);
             Price = arm[name][2];
             Armor(name, DEF, Health, Price);
         }

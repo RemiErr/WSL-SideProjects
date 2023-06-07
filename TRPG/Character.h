@@ -73,7 +73,7 @@ public:
         if (SPD < 0) SPD = 0;
     }
 
-    // 加值功能，同時記錄角色數值加點狀況 #20230605
+    // 加值功能，同時記錄角色數值加點狀況
     void addState(int health = -1, int atk = -1, int def = -1, int spd = -1)
     {
         if (health != -1 && Point - health >= 0) {
@@ -153,7 +153,7 @@ public:
 
     int onHit(double dmg, bool def_flag = false)
     {
-        dmg -= (1 + getState()[eDEF]/100) * (2 * DEF + 3 * armor->getDEF()) / dmg  + (def_flag? DEF : 0) + 0.5; // 四捨五入
+        dmg -= round( (1 + getState()[eDEF]/100) * (2 * DEF + 3 * armor->getDEF()) / dmg  + (def_flag? DEF : 0) ); // 四捨五入
         if (dmg < 0) dmg = 0;
 
         Health -= dmg;

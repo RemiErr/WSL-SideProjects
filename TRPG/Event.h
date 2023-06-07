@@ -64,8 +64,8 @@ FileManager file("event/Events.csv");
 vector<eID> Except;
 
 // 事件排程
-vector<int> Ds_go;
-vector<int> Ds_stay;
+vector<int> Ds_go{};
+vector<int> Ds_stay{};
 map<string, vector<string>> Msg = file.getText();
 map<eState, string> State
 {
@@ -344,6 +344,7 @@ bool Desert_menu(){
         EvnSignal = CHG;
         break;
     case 5:
+        CLS_M
         msg = "你查看了目前的狀態\n";
         displayText(msg, 2);
         showPlayerState();

@@ -22,15 +22,14 @@ int main()
 
     CLS_M
     int debuff = 0;
-    starGame();
+    if (!starGame()) return 0;
     creatCharacter();
+    addPoint();
 
     // 裝備物件, 是否扣錢
     p->setWeapon( wep_drop.makeWeapon(p->getRoleType(), "銳利刺匕"), false );
     p->setArmor( arm_drop.makeArmor(p->getRoleType(), "鐵製背心"), false );
     p->isRecovery( p->getArmor()->getHealth() );
-
-    addPoint();
 
     if (f_Game) showLoadingAnimation(25);
     sleep(20);

@@ -92,7 +92,7 @@ public:
         if (!wep[name].empty())
         {
             Name = name;
-            ATK = wep[name][0] * 0.5 + 0.5;
+            ATK = round(wep[name][0] * 0.5);
             Price = wep[name][1];
             Weapon(name, ATK, Price);
         }
@@ -112,7 +112,7 @@ public:
         if (!wep[name].empty())
         {
             Name = name;
-            ATK = wep[name][0] * 1.7 + 0.5;
+            ATK = round(wep[name][0] * 1.7);
             Price = wep[name][1];
             Weapon(name, ATK, Price);
         }

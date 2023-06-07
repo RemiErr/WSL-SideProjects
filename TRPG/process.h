@@ -1,6 +1,6 @@
 #include "objecct.h"
 
-void starGame(){
+int starGame(){
     int start;//開始遊戲確認
     cout << "普通的文字RPG \n 開始遊戲(1) \n 退出遊戲(2) \n";
     cin >> start;
@@ -13,7 +13,7 @@ void starGame(){
         }
         else if (start == 2){
             cout << "退出遊戲";
-            exit(0); // 直接終止程式運行
+            return 0;
         }else{
             cin.clear();
             cin.ignore();
@@ -21,6 +21,7 @@ void starGame(){
             cin>>start;
         }
     }
+    return 1;
 }
 
 void creatCharacter()
@@ -108,6 +109,7 @@ void changeCharacter(Weapon *wep, Armor *arm)
     p->setWeapon(wep);
     p->setArmor(arm);
 }
+
 void addPoint(){
     int add;
     int choice;
@@ -168,7 +170,7 @@ void addPoint(){
     int sum_pt = 0;
     for (auto pt: p->getPointHistory()) sum_pt += pt;
 
-    if (sum_pt == 0 && choice != 0)
+    if (sum_pt <= 10 && choice != 0)
     {
         cout<<"加點完成，要進入遊戲了嗎？\n0.離開遊戲\n1.進入遊戲\n2.更改數值"<<endl;
         cin >> choice;
@@ -193,6 +195,7 @@ void addPoint(){
         }
     }
 }
+
 void endGame()
 {
     p->setState(0,0);
@@ -207,6 +210,7 @@ void endGame()
     sleep(1500);
     f_Game = false;
 }
+
 bool isEscape()
 {
     // 逃跑
@@ -215,12 +219,14 @@ bool isEscape()
     if (random(1, 50) - p->getState()[eSPD] < random(1, 50) - m->getState()[eSPD])
     {
         cout << "\n你成功逃離了 " << m->getRoleName() << " 的追擊\n";
-        sleep(500);
+        STOP_M
+        CLS_M
         return true;
     }
     cout << "\n敵方的速度太快了，你沒有逃離 " << m->getRoleName() << " 的追擊\n"
          << "受到 " << p->onHit(m->getState()[eATK]) << " 點傷害\n";
-    sleep(500);
+    STOP_M
+    CLS_M
     return false;
 }
 
@@ -256,15 +262,16 @@ void showAttack()
         case 1:
             {
                 CLS_M
-                bool m_def = random(0, 100) <= 30;
-                dmg = m->onHit( p->getState()[eATK], m_def ); // 怪物 30% 機會防禦成功
+                bool m_def = random(1, 100) <= 30;
+                dmg = m->onHit( p->getState()[eATK], m_def );                       // 怪物 30% 機會防禦成功
                 showMonsterState();
                 showPlayerState();
                 if (!m_def)
                 {
                     cout << "你對"<< m->getRoleName() << "發動了攻擊，"
                         << "造成 " << dmg << " 點傷害\n";
-                } else {
+                } 
+                else {
                     cout << m->getRoleName() << "架起防禦姿勢，"
                         << "你造成 " << dmg << " 點傷害\n";
                 }
@@ -272,7 +279,8 @@ void showAttack()
                 cout << m->getRoleName() << "向你發動了攻擊，";
                 dmg = p->onHit( m->getState()[eATK] );
                 cout << "受到 "<< dmg << " 點傷害     \n";
-                sleep(1200);
+                STOP_M
+                CLS_M
                 break;
             }
         case 2:
@@ -281,38 +289,40 @@ void showAttack()
                 dmg = p->onHit( m->getState()[eATK], true );
                 showMonsterState();
                 showPlayerState();
-                cout << "你架好了防禦姿勢。\n" << m->getRoleName() << "向你發動了攻擊，";
+                cout << "你架好了防禦姿勢。\n"
+                     << m->getRoleName()
+                     << "向你發動了攻擊，";
                 cout << "受到 "<< dmg << " 點傷害     \n";
-                sleep(1200);
+                STOP_M
+                CLS_M
                 break;
             }
+
         case 3:
             {
                 CLS_M
                 p->isRecovery( random(p->getState()[eHP] * 0.1, p->getState()[eHP] * 0.3) );
                 displayText("聖光灑落在你身上，恢復了些微血量。\n\n", 2);
-                sleep(500);
                 if (random(1, 100) <= 35)
                     displayText( m->getRoleName() +
                                 "趁機偷襲，你受到 " +
                                 to_string(p->onHit(m->getState()[eATK])) +
                                 " 點傷害\n\n" );
-                sleep(200);
+                sleep(1000);
                 cout<<"\t[ 玩家狀態 ]"<<endl;
                 showPlayerState();
-
                 STOP_M
+                CLS_M
                 break;
             }
         case 4:
-            CLS_M
             if (isEscape()) ft_flag = false;
             break;
         }
-        sleep(600);
+        CLS_M
     }
 
-    if (!ft_flag) return;
+    if (!ft_flag) return; //結束戰鬥
     if (p->getState()[eHP] > 0)
     {
         p->setMoney(p->getMoney() + m->getMoney());
@@ -334,5 +344,6 @@ void showAttack()
 
         p->setArmor( arm_drop.makeArmor(0, "") );
     }
-    sleep(1000);
+    STOP_M
+    CLS_M
 }

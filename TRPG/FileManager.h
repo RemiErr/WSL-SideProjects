@@ -34,6 +34,7 @@ public:
     }
     ~FileManager(){};
 
+    //以map型態宣告成員函式getData
     map<string, vector<int>> getData(char split = ',')
     {
         map<string, vector<int>> data;
@@ -66,7 +67,6 @@ public:
             }
         }
         file.close();
-
         return data;
     };
 
@@ -103,7 +103,6 @@ public:
             }
         }
         file.close();
-
         return data;
     };
 };
